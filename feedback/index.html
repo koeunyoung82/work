@@ -125,8 +125,12 @@ figcaption{font-size:11px;color:var(--muted)}
 .swatch{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid var(--line)}
 .swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--surface)}
 .tool[aria-pressed="true"]{border-color:var(--ink);background:var(--bg)}
-.kindpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.kindpick button{padding:12px;font-size:15px}
+.kindpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.quick button{font-size:13px;font-weight:500;padding:5px 10px;border-radius:999px}
+.kindpick button{padding:11px 6px;font-size:15px}
+.kindpick button[aria-pressed="true"]{background:var(--kc);border-color:var(--kc);color:#fff}
+.kind{background:color-mix(in srgb,var(--kc) 15%,transparent);color:var(--kc)}
 .kindpick button[aria-pressed="true"].k-sub{background:var(--sub);border-color:var(--sub);color:#fff}
 .kindpick button[aria-pressed="true"].k-screen{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .fields{display:grid;gap:10px}
@@ -256,12 +260,7 @@ figcaption{font-size:11px;color:var(--muted)}
     <div class="panel">
       <div class="notes-head">
         <h2>수정 요청 <span class="mono" id="countAll"></span></h2>
-        <div class="seg" role="group" aria-label="보기">
-          <button type="button" data-f="all" aria-pressed="true">전체</button>
-          <button type="button" data-f="sub" aria-pressed="false">자막 <span class="mono" id="cSub">0</span></button>
-          <button type="button" data-f="screen" aria-pressed="false">화면 <span class="mono" id="cScreen">0</span></button>
-          <button type="button" data-f="open" aria-pressed="false">미반영 <span class="mono" id="cOpen">0</span></button>
-        </div>
+        <div class="seg" role="group" aria-label="보기" id="noteSeg"></div>
       </div>
       <div id="noteList"></div>
     </div>
@@ -282,16 +281,13 @@ figcaption{font-size:11px;color:var(--muted)}
       <button type="button" class="tool" data-t="arrow" aria-pressed="false">화살표</button>
       <button type="button" id="undo">되돌리기</button>
     </div>
-    <div class="kindpick" role="group" aria-label="수정 종류">
-      <button type="button" class="k-sub" data-k="sub" aria-pressed="true">자막 수정</button>
-      <button type="button" class="k-screen" data-k="screen" aria-pressed="false">화면 수정</button>
-    </div>
+    <div class="kindpick" role="group" aria-label="수정 종류" id="kindPick"></div>
     <div class="fields">
       <div class="f2" id="subFields">
-        <div class="f"><label for="capBefore">현재 자막</label><input id="capBefore" type="text" placeholder="예: 횡성 한우 축제"></div>
-        <div class="f"><label for="capAfter">바꿀 자막</label><input id="capAfter" type="text" placeholder="예: 횡성한우축제"></div>
+        <div class="f"><label for="capBefore" id="lblBefore">현재 자막</label><input id="capBefore" type="text"></div>
+        <div class="f"><label for="capAfter" id="lblAfter">바꿀 자막</label><input id="capAfter" type="text"></div>
       </div>
-      <div class="f"><label for="capText" id="capTextLabel">추가 메모 (선택)</label><textarea id="capText" placeholder="예: 자막 위치를 조금 위로, 글자 크기 키우기"></textarea></div>
+      <div class="f"><label for="capText" id="capTextLabel">추가 메모 (선택)</label><div class="quick" id="quick"></div><textarea id="capText" placeholder="예: 자막 위치를 조금 위로, 글자 크기 키우기"></textarea></div>
       <div class="f" id="cutField" hidden><label for="capCut">해당 콘티 컷</label><select id="capCut"></select><img id="cutPreview" alt="선택한 콘티 컷" hidden></div>
     </div>
     <div class="row" style="justify-content:flex-end">
@@ -302,6 +298,17 @@ figcaption{font-size:11px;color:var(--muted)}
   </div>
 </div>
 
+<div class="modal" id="pdfModal" hidden style="place-items:center">
+  <div class="sheet" style="width:min(440px,100%)">
+    <b style="font-size:17px">PDF 정리본이 준비됐어요</b>
+    <span class="small muted" id="pdfInfo"></span>
+    <button type="button" id="mailBtn" class="primary" style="padding:13px;font-size:16px">메일로 바로 보내기</button>
+    <span class="small muted" id="mailTo"></span>
+    <button type="button" id="saveBtn" style="padding:12px">기기에 저장 · 다른 앱으로 공유</button>
+    <span class="small" id="mailMsg" role="status" style="min-height:1.2em"></span>
+    <button type="button" id="pdfClose">닫기</button>
+  </div>
+</div>
 <div class="modal" id="zoomModal" hidden style="place-items:center"><img id="zoomImg" alt="크게 보기"></div>
 <div id="busy" hidden><div style="display:grid;gap:12px;justify-items:center;text-align:center;padding:16px"><span id="busyText">PDF 만드는 중…</span><button type="button" id="busyCancel" hidden>중지</button></div></div>
 <div id="toast" hidden></div>
@@ -312,6 +319,8 @@ figcaption{font-size:11px;color:var(--muted)}
 (function(){
 const $=s=>document.querySelector(s);
 const PASS="0704";
+const MAIL_URL="";
+const MAIL_TO="shey_love@naver.com";
 let FPS=30;
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let me=ls.get("fb_name")||"";
@@ -655,10 +664,21 @@ async function detectCuts(){
 /* ---------- 스틸 + 표시 ---------- */
 const cv=$("#draw"),ctx=cv.getContext("2d");
 let base=null,shapes=[],cur=null,capT=0,color="#FF2D2D",tool="pen",kind="sub",editing=null;
-function setKind(k){kind=k;document.querySelectorAll(".kindpick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===k)));
-  $("#subFields").hidden=k!=="sub";$("#capTextLabel").textContent=k==="sub"?"추가 메모 (선택)":"화면 수정 내용";
-  $("#capText").placeholder=k==="sub"?"예: 자막 위치를 조금 위로, 글자 크기 키우기":"예: 로고 크기 줄이기, 이 컷 색감 밝게, 인물 클로즈업으로 교체"}
-document.querySelectorAll(".kindpick button").forEach(b=>b.onclick=()=>setKind(b.dataset.k));
+const KINDS=[
+  {k:"sub",name:"자막",color:"#2557C7",pair:["현재 자막","바꿀 자막"],ph:"예: 자막 위치를 조금 위로, 글자 크기 키우기",quick:["글자 크게","글자 작게","위치 위로","위치 아래로","오타 수정","노출 시간 길게","노출 시간 짧게","폰트 변경","삭제"]},
+  {k:"screen",name:"화면",color:"#D2382F",ph:"예: 이 컷 색감 밝게, 인물 클로즈업으로 교체",quick:["밝게","어둡게","색감 조정","컷 교체","컷 길이 줄이기","컷 길이 늘리기","확대(크롭)","흔들림 보정","삭제"]},
+  {k:"graphic",name:"그래픽",color:"#7A3FC4",ph:"예: 로고 크기 키우기, 지도 그래픽 추가",quick:["크기 키우기","크기 줄이기","위치 이동","색 변경","글자 수정","움직임 변경","추가","삭제"]},
+  {k:"sfx",name:"효과음·음악",color:"#B86E00",ph:"예: 이 장면 효과음 추가, 배경음악 볼륨 낮추기",quick:["볼륨 키우기","볼륨 줄이기","효과음 추가","효과음 빼기","음악 교체","타이밍 앞당기기","타이밍 늦추기"]},
+  {k:"narr",name:"내레이션",color:"#1E8757",pair:["현재 내레이션","바꿀 내레이션"],ph:"예: 이 문장 조금 천천히, 톤을 밝게",quick:["다시 녹음","속도 천천히","속도 빠르게","볼륨 키우기","볼륨 줄이기","타이밍 앞당기기","타이밍 늦추기","발음 확인"]},
+  {k:"etc",name:"기타",color:"#5A6070",ph:"예: 엔딩 크레딧에 협조기관 추가",quick:[]}
+];
+const KMAP=Object.fromEntries(KINDS.map(x=>[x.k,x]));
+const kindOf=n=>KMAP[n.kind]?n.kind:"screen";
+(function(){const box=$("#kindPick");for(const K of KINDS){const b=el("button",{type:"button","data-k":K.k,style:"--kc:"+K.color,"aria-pressed":"false"},K.name);b.onclick=()=>setKind(K.k);box.append(b)}})();
+function setKind(k){kind=k;const K=KMAP[k];document.querySelectorAll("#kindPick button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===k)));
+  $("#subFields").hidden=!K.pair;if(K.pair){$("#lblBefore").textContent=K.pair[0];$("#lblAfter").textContent=K.pair[1]}
+  $("#capTextLabel").textContent=K.pair?"추가 메모 (선택)":K.name+" 수정 내용";$("#capText").placeholder=K.ph;
+  const q=$("#quick");q.replaceChildren();for(const w of K.quick){const b=el("button",{type:"button"},w);b.onclick=()=>{const t=$("#capText");t.value=t.value.trim()?t.value.trim().replace(/[,.]$/,"")+", "+w:w;t.focus()};q.append(b)}}
 function grab(){
   if(!v.videoWidth)return;v.pause();capT=v.currentTime;editing=null;
   const w=Math.min(1280,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);
@@ -690,34 +710,37 @@ $("#capCancel").onclick=()=>$("#capModal").hidden=true;
 function stillData(){const w=Math.min(960,cv.width);const c=document.createElement("canvas");c.width=w;c.height=Math.round(cv.height*w/cv.width);c.getContext("2d").drawImage(cv,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.8)}
 function saveNote(){
   const text=$("#capText").value.trim(),before=$("#capBefore").value.trim(),after=$("#capAfter").value.trim();
-  if(kind==="sub"&&!after&&!text){$("#capErr").textContent="바꿀 자막이나 메모를 적어 주세요.";return}
-  if(kind==="screen"&&!text){$("#capErr").textContent="화면 수정 내용을 적어 주세요.";return}
-  proj.notes.push({id:uid(),kind,t:capT,still:stillData(),before:kind==="sub"?before:"",after:kind==="sub"?after:"",text,cut:$("#capCut").value,author:me,done:false,doneBy:"",createdAt:Date.now(),updatedAt:Date.now()});
-  proj.notes.sort((a,b)=>a.t-b.t);$("#capModal").hidden=true;changed();toast((kind==="sub"?"자막":"화면")+" 수정을 남겼어요");
+  const K=KMAP[kind];
+  if(!text&&!(K.pair&&(after||before))){$("#capErr").textContent=K.pair?K.pair[1]+"이나 메모를 적어 주세요.":K.name+" 수정 내용을 적어 주세요.";return}
+  proj.notes.push({id:uid(),kind,t:capT,still:stillData(),before:K.pair?before:"",after:K.pair?after:"",text,cut:$("#capCut").value,author:me,createdAt:Date.now(),updatedAt:Date.now()});
+  proj.notes.sort((a,b)=>a.t-b.t);$("#capModal").hidden=true;changed();toast(K.name+" 수정을 남겼어요");
 }
 $("#capSave").onclick=saveNote;
 $("#capText").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();saveNote()}});
 
 /* ---------- 목록 ---------- */
-document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderNotes()});
-const kindOf=n=>n.kind||"screen";
+
 function noteBody(n){
   const b=el("div",{class:"body"});
-  if(kindOf(n)==="sub"&&(n.before||n.after)){if(n.before)b.append(el("div",{class:"before"},n.before));if(n.after)b.append(el("div",{class:"after"},"→ "+n.after))}
+  if(KMAP[kindOf(n)].pair&&(n.before||n.after)){if(n.before)b.append(el("div",{class:"before"},n.before));if(n.after)b.append(el("div",{class:"after"},"→ "+n.after))}
   if(n.text)b.append(el("p",{class:"txt"},n.text));return b;
 }
 function renderNotes(){
   const N=proj.notes;
   $("#countAll").textContent=N.length?"· "+N.length:"";
-  $("#cSub").textContent=N.filter(n=>kindOf(n)==="sub").length;$("#cScreen").textContent=N.filter(n=>kindOf(n)==="screen").length;$("#cOpen").textContent=N.filter(n=>!n.done).length;
+  const seg=$("#noteSeg");seg.replaceChildren();
+  const present=KINDS.filter(K=>N.some(n=>kindOf(n)===K.k));if(filter!=="all"&&!present.some(K=>K.k===filter))filter="all";
+  for(const o of [{k:"all",name:"전체",c:N.length}].concat(present.map(K=>({k:K.k,name:K.name,c:N.filter(n=>kindOf(n)===K.k).length})))){
+    const b=el("button",{type:"button","aria-pressed":String(filter===o.k)},o.name+" ",el("span",{class:"mono"},o.c));b.onclick=()=>{filter=o.k;renderNotes()};seg.append(b)}
+  seg.hidden=present.length<2;
   const list=$("#noteList");list.replaceChildren();
-  const shown=N.filter(n=>filter==="all"||(filter==="open"?!n.done:kindOf(n)===filter));
+  const shown=N.filter(n=>filter==="all"||kindOf(n)===filter);
   if(!shown.length){list.append(el("div",{class:"empty-note"},N.length?"이 보기에 해당하는 요청이 없어요.":"영상을 보다 멈추고 '스틸 잡고 수정 쓰기'를 누르면 여기에 쌓여요. 다 모이면 'PDF 정리본'으로 뽑아 주세요."));return}
   for(const n of shown){
     const k=kindOf(n);
     const top=el("div",{class:"top"},
       el("button",{class:"tcbtn",type:"button",title:"이 장면으로 이동",onclick:()=>{if(!v.src){toast("먼저 영상을 열어 주세요");return}v.pause();v.currentTime=n.t;window.scrollTo({top:0,behavior:"smooth"})}},tc(n.t)),
-      el("span",{class:"kind "+k},k==="sub"?"자막":"화면"),
+      el("span",{class:"kind",style:"--kc:"+KMAP[k].color},KMAP[k].name),
       segAt(n.t)?el("span",{class:"chip"},"영상 컷 "+segAt(n.t).no):null,
       n.cut?el("span",{class:"chip",style:"color:var(--sub);border-color:var(--sub)"},"콘티 "+n.cut+"번"):null,
       el("span",{class:"meta"},(n.author||"")+" · "+when(n.createdAt)));
@@ -726,19 +749,17 @@ function renderNotes(){
     const cc=n.cut&&proj.cuts[Number(n.cut)-1];
     if(cc){const im=el("img",{src:cc.src,alt:"콘티"});im.onclick=()=>zoom(cc.src);pics.append(el("figure",{},im,el("figcaption",{},"콘티 "+n.cut+"번")));pics.classList.add("two")}
     const body=noteBody(n);
-    const chk=el("input",{type:"checkbox",id:"d-"+n.id});chk.checked=!!n.done;
-    chk.onchange=()=>{n.done=chk.checked;n.doneBy=chk.checked?me:"";n.updatedAt=Date.now();changed()};
     const edit=el("button",{type:"button"},"고치기");
     edit.onclick=()=>{
       if(edit.dataset.on){const q=s=>body.querySelector(s);if(q("#e-b")){n.before=q("#e-b").value.trim();n.after=q("#e-a").value.trim()}n.text=q("#e-t").value.trim();n.updatedAt=Date.now();changed();return}
       edit.dataset.on="1";edit.textContent="저장";body.replaceChildren();
-      if(k==="sub"){const b1=el("input",{type:"text",id:"e-b",placeholder:"현재 자막"});b1.value=n.before||"";const a1=el("input",{type:"text",id:"e-a",placeholder:"바꿀 자막"});a1.value=n.after||"";body.append(b1,a1)}
+      if(KMAP[k].pair){const b1=el("input",{type:"text",id:"e-b",placeholder:KMAP[k].pair[0]});b1.value=n.before||"";const a1=el("input",{type:"text",id:"e-a",placeholder:KMAP[k].pair[1]});a1.value=n.after||"";body.append(b1,a1)}
       const t1=el("textarea",{id:"e-t",placeholder:"메모"});t1.value=n.text||"";body.append(t1)};
     const del=el("button",{type:"button",class:"del"},"삭제");let arm=0;
     del.onclick=()=>{if(Date.now()-arm>3000){arm=Date.now();del.classList.add("arm");del.textContent="정말 삭제?";setTimeout(()=>{del.classList.remove("arm");del.textContent="삭제"},3000);return}
       proj.notes=proj.notes.filter(x=>x.id!==n.id);changed();toast("삭제했어요")};
-    list.append(el("article",{class:"note"+(n.done?" done":"")},top,pics.childNodes.length?pics:null,body,
-      el("div",{class:"acts"},el("label",{for:"d-"+n.id},chk,"반영 완료"),n.done&&n.doneBy?el("span",{class:"small muted"},"확인: "+n.doneBy):null,el("span",{class:"rb"},edit,del))));
+    list.append(el("article",{class:"note"},top,pics.childNodes.length?pics:null,body,
+      el("div",{class:"acts"},el("span",{class:"rb"},edit,del))));
   }
 }
 function render(){if(document.activeElement!==$("#title"))$("#title").value=proj.title;renderCuts();renderCutTable();renderNotes();updateNow(true)}
@@ -776,10 +797,14 @@ $("#newProj").onclick=()=>{
   if(proj.notes.length&&Date.now()-newArm>4000){newArm=Date.now();toast("지금 의견이 모두 지워져요. 한 번 더 누르면 새로 시작해요");return}
   closeMenu();proj=blank();if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null}v.removeAttribute("src");v.load();v.hidden=true;$("#playerEmpty").hidden=false;$("#videoName").textContent="";$("#grab").disabled=true;changed();toast("새 프로젝트를 시작했어요");
 };
+function listText(){
+  const line=(n,i)=>`${i+1}. [${tc(n.t)}]${segAt(n.t)?" [영상 컷 "+segAt(n.t).no+"]":""}${n.cut?" [콘티 "+n.cut+"번]":""} [${KMAP[kindOf(n)].name}]${n.before?" "+n.before+" →":""}${n.after?" "+n.after:""}${n.text?" "+n.text:""} — ${n.author||""}`;
+  return [proj.title+" 수정 요청",""].concat(proj.notes.map(line)).join("\n");
+}
 $("#copyList").onclick=async()=>{closeMenu();
   if(!proj.notes.length){toast("복사할 요청이 없어요");return}
-  const line=(n,i)=>`${i+1}. [${tc(n.t)}]${segAt(n.t)?" [영상 컷 "+segAt(n.t).no+"]":""}${n.cut?" [콘티 "+n.cut+"번]":""} ${kindOf(n)==="sub"?"[자막] "+(n.before?n.before+" → ":"")+(n.after||""):"[화면]"}${n.text?" "+n.text:""} — ${n.author||""}${n.done?" (반영완료)":""}`;
-  const txt=[proj.title+" 수정 요청",""].concat(proj.notes.map(line)).join("\n");
+  const line=(n,i)=>`${i+1}. [${tc(n.t)}]${segAt(n.t)?" [영상 컷 "+segAt(n.t).no+"]":""}${n.cut?" [콘티 "+n.cut+"번]":""} [${KMAP[kindOf(n)].name}]${n.before?" "+n.before+" →":""}${n.after?" "+n.after:""}${n.text?" "+n.text:""} — ${n.author||""}`;
+  const txt=listText();
   try{await navigator.clipboard.writeText(txt);toast("목록을 복사했어요")}catch(e){toast("복사하지 못했어요")}
 };
 
@@ -787,85 +812,108 @@ $("#copyList").onclick=async()=>{closeMenu();
 const PW=1240,PH=1754,M=80,FONT='"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
 function wrap(c,text,maxW){const out=[];for(const para of String(text||"").split("\n")){let line="";for(const ch of para){const t=line+ch;if(c.measureText(t).width>maxW&&line){out.push(line);line=ch}else line=t}out.push(line)}return out}
+async function buildPDF(){
+  const pages=[];let x,y;
+  const newPage=()=>{const cv=document.createElement("canvas");cv.width=PW;cv.height=PH;x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,PW,PH);x.textBaseline="top";pages.push(cv);y=M;
+    x.font="20px "+FONT;x.fillStyle="#888";x.fillText(proj.title+" · 수정요청 정리본",M,PH-56);};
+  newPage();
+  const d=new Date();
+  x.fillStyle="#D2382F";x.fillRect(M,y,70,10);y+=28;
+  x.fillStyle="#111";x.font="bold 44px "+FONT;for(const l of wrap(x,proj.title+" 수정요청서",PW-2*M)){x.fillText(l,M,y);y+=56}
+  x.font="22px "+FONT;x.fillStyle="#555";
+  x.fillText(`작성일 ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}   기준 영상 ${proj.videoName||"-"}`,M,y);y+=34;
+  const people=[...new Set(proj.notes.map(n=>n.author).filter(Boolean))].join(", ");
+  const sum=KINDS.map(K=>[K.name,proj.notes.filter(n=>kindOf(n)===K.k).length]).filter(z=>z[1]).map(z=>z[0]+" "+z[1]+"건").join(" · ");
+  for(const l of wrap(x,`총 ${proj.notes.length}건 (${sum})${people?"   의견: "+people:""}`,PW-2*M)){x.fillText(l,M,y);y+=32}
+  y+=20;
+  const hasConti=proj.notes.some(n=>n.cut&&proj.cuts[Number(n.cut)-1]);
+  const imgW=320,cW=150,gap=20,txtX=M+imgW+gap+(hasConti?cW+gap:0),txtW=PW-M-txtX;
+  let no=0;
+  for(const K of KINDS){
+    const list=proj.notes.filter(n=>kindOf(n)===K.k);if(!list.length)continue;
+    if(y>PH-300)newPage();
+    x.fillStyle=K.color;x.fillRect(M,y,PW-2*M,46);x.fillStyle="#fff";x.font="bold 24px "+FONT;x.fillText(`${K.name} 수정  ${list.length}건`,M+16,y+10);y+=62;
+    for(const n of list){no++;
+      const img=n.still?await loadImg(n.still):null;const ih=img?Math.round(img.height*imgW/img.width):0;
+      const cc=n.cut&&proj.cuts[Number(n.cut)-1];const cimg=cc?await loadImg(cc.src):null;const chh=cimg?Math.round(cimg.height*cW/cimg.width):0;
+      const sg=segAt(n.t);
+      const blocks=[];
+      if(K.pair){if(n.before)blocks.push({f:"20px",col:"#888",t:"현재: "+n.before});if(n.after)blocks.push({f:"bold 23px",col:"#111",t:"수정: "+n.after})}
+      if(n.text)blocks.push({f:"21px",col:"#222",t:n.text});
+      blocks.push({f:"17px",col:"#888",t:[sg?"영상 컷 "+sg.no+" ("+tc(sg.t)+"~"+tc(sg.end)+")":"",n.cut?"콘티 "+n.cut+"번":"",n.author].filter(Boolean).join(" · ")});
+      let th=36;const lines=blocks.map(b=>{x.font=b.f+" "+FONT;const ls=wrap(x,b.t,txtW);th+=ls.length*(parseInt(b.f.replace("bold ",""))*1.4)+6;return ls});
+      const rh=Math.max(ih,cimg?chh+26:0,th)+26;
+      if(y+rh>PH-90)newPage();
+      if(img){x.drawImage(img,M,y,imgW,ih);x.strokeStyle="#ccc";x.lineWidth=1;x.strokeRect(M+.5,y+.5,imgW-1,ih-1)}
+      if(cimg){const cx=M+imgW+gap;x.drawImage(cimg,cx,y,cW,chh);x.strokeStyle="#ccc";x.strokeRect(cx+.5,y+.5,cW-1,chh-1);x.font="bold 16px "+FONT;x.fillStyle="#666";x.fillText("콘티 "+n.cut+"번",cx,y+chh+6)}
+      let ty=y;x.font="bold 23px "+FONT;x.fillStyle=K.color;x.fillText(`${no}.  ${tc(n.t)}`,txtX,ty);ty+=36;
+      blocks.forEach((b,bi)=>{x.font=b.f+" "+FONT;x.fillStyle=b.col;const lh=parseInt(b.f.replace("bold ",""))*1.4;for(const l of lines[bi]){x.fillText(l,txtX,ty);ty+=lh}ty+=6});
+      y+=rh;x.strokeStyle="#e6e6e6";x.lineWidth=1;x.beginPath();x.moveTo(M,y-13);x.lineTo(PW-M,y-13);x.stroke();
+    }
+    y+=14;
+  }
+  const S=segs();
+  if(S.length){
+    newPage();x.fillStyle="#17191E";x.fillRect(M,y,PW-2*M,46);x.fillStyle="#fff";x.font="bold 24px "+FONT;x.fillText(`컷 대조표  영상 ${S.length}컷 · 콘티 ${proj.cuts.length}컷`,M+16,y+10);y+=62;
+    const cols=[M,M+100,M+300,M+520,M+640,M+860];
+    x.font="bold 18px "+FONT;x.fillStyle="#666";["영상 컷","타임코드 / 길이","영상 화면","콘티","콘티 그림","의견"].forEach((h,i)=>x.fillText(h,cols[i],y));y+=32;
+    for(const sg of S){
+      const th=sg.thumb?await loadImg(sg.thumb):null;const cc=sg.conti&&proj.cuts[sg.conti-1];const ci=cc?await loadImg(cc.src):null;
+      const rh=Math.max(th?Math.round(th.height*200/th.width):0,ci?Math.round(ci.height*190/ci.width):0,64)+18;
+      if(y+rh>PH-90)newPage();
+      x.strokeStyle="#e6e6e6";x.beginPath();x.moveTo(M,y-8);x.lineTo(PW-M,y-8);x.stroke();
+      x.font="bold 28px "+FONT;x.fillStyle="#111";x.fillText(String(sg.no),cols[0]+10,y+4);
+      x.font="20px "+FONT;x.fillStyle="#222";x.fillText(tc(sg.t),cols[1],y+2);x.fillStyle="#888";x.fillText("~ "+tc(sg.end),cols[1],y+30);x.fillText((sg.end-sg.t).toFixed(1)+"초",cols[1],y+58);
+      if(th)x.drawImage(th,cols[2],y,200,Math.round(th.height*200/th.width));
+      x.font="bold 26px "+FONT;x.fillStyle=sg.conti?"#2557C7":"#bbb";x.fillText(sg.conti?sg.conti+"번":"-",cols[3],y+4);
+      if(cc&&cc.dur!=null){x.font="17px "+FONT;x.fillStyle="#888";x.fillText("콘티 "+cc.dur+"초",cols[3],y+40)}
+      if(ci)x.drawImage(ci,cols[4],y,190,Math.round(ci.height*190/ci.width));
+      const cnt=proj.notes.filter(n=>segAt(n.t)&&segAt(n.t).no===sg.no).length;x.font="bold 22px "+FONT;x.fillStyle=cnt?"#D2382F":"#bbb";x.fillText(cnt?cnt+"건":"-",cols[5],y+4);
+      y+=rh;
+    }
+  }
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4",compress:true});
+  pages.forEach((p,i)=>{if(i)doc.addPage();x=p.getContext("2d");x.font="18px "+FONT;x.fillStyle="#888";const t=(i+1)+" / "+pages.length;x.fillText(t,PW-M-x.measureText(t).width,PH-56);
+    doc.addImage(p.toDataURL("image/jpeg",.85),"JPEG",0,0,210,297)});
+  return {blob:doc.output("blob"),pages:pages.length};
+}
+let pdfReady=null;
 $("#pdfBtn").onclick=async()=>{
   if(!proj.notes.length){toast("수정 요청이 아직 없어요");return}
   if(!window.jspdf){toast("PDF 도구를 불러오지 못했어요. 인터넷 연결 후 다시 열어 주세요");return}
   busy("PDF 만드는 중…");await new Promise(r=>setTimeout(r,30));
   try{
-    const pages=[];let c,x,y;
-    const newPage=()=>{const cv=document.createElement("canvas");cv.width=PW;cv.height=PH;x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,PW,PH);x.textBaseline="top";pages.push(cv);c=cv;y=M;
-      x.font="22px "+FONT;x.fillStyle="#888";x.fillText(proj.title+" · 수정요청 정리본",M,PH-56);};
-    newPage();
-    const d=new Date(),subs=proj.notes.filter(n=>kindOf(n)==="sub"),scrs=proj.notes.filter(n=>kindOf(n)==="screen");
-    x.fillStyle="#D2382F";x.fillRect(M,y,70,10);y+=30;
-    x.fillStyle="#111";x.font="bold 46px "+FONT;for(const l of wrap(x,proj.title+" 수정요청서",PW-2*M)){x.fillText(l,M,y);y+=58}
-    x.font="24px "+FONT;x.fillStyle="#555";
-    x.fillText(`작성일 ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}   기준 영상 ${proj.videoName||"-"}`,M,y);y+=38;
-    const people=[...new Set(proj.notes.map(n=>n.author).filter(Boolean))].join(", ");
-    x.fillText(`자막 수정 ${subs.length}건 · 화면 수정 ${scrs.length}건 · 미반영 ${proj.notes.filter(n=>!n.done).length}건${people?"   의견: "+people:""}`.slice(0,90),M,y);y+=56;
-    const imgW=440,gap=28,txtX=M+imgW+gap,txtW=PW-M-txtX;
-    async function section(title,list,color){
-      if(!list.length)return;
-      if(y>PH-260)newPage();
-      x.fillStyle=color;x.fillRect(M,y,PW-2*M,56);x.fillStyle="#fff";x.font="bold 28px "+FONT;x.fillText(`${title}  ${list.length}건`,M+20,y+13);y+=76;
-      let i=0;
-      for(const n of list){i++;
-        const img=n.still?await loadImg(n.still):null;const ih=img?Math.round(img.height*imgW/img.width):0;
-        const cc=n.cut&&proj.cuts[Number(n.cut)-1];const cimg=cc?await loadImg(cc.src):null;const cw=Math.round(imgW*.55),chh=cimg?Math.round(cimg.height*cw/cimg.width):0;const lh0=ih+(cimg?chh+44:0);
-        x.font="bold 26px "+FONT;
-        const blocks=[];
-        if(kindOf(n)==="sub"){if(n.before)blocks.push({f:"24px",col:"#888",t:"현재: "+n.before});if(n.after)blocks.push({f:"bold 27px",col:"#111",t:"수정: "+n.after})}
-        if(n.text)blocks.push({f:"25px",col:"#222",t:n.text});
-        const sg=segAt(n.t);blocks.push({f:"bold 21px",col:"#2557C7",t:[sg?"영상 컷 "+sg.no+" ("+tc(sg.t)+"~"+tc(sg.end)+")":"",n.cut?"콘티 "+n.cut+"번":""].filter(Boolean).join("  ·  ")||" "});
-        blocks.push({f:"20px",col:"#888",t:[n.author,when(n.createdAt)].filter(Boolean).join(" · ")});
-        let th=44;const lines=blocks.map(b=>{x.font=b.f+" "+FONT;const ls=wrap(x,b.t,txtW);th+=ls.length*(parseInt(b.f.replace("bold ",""))*1.45)+8;return ls});
-        const rh=Math.max(lh0,th)+30;
-        if(y+rh>PH-90)newPage();
-        if(img){x.drawImage(img,M,y,imgW,ih);x.strokeStyle="#ccc";x.lineWidth=1;x.strokeRect(M+.5,y+.5,imgW-1,ih-1)}
-        if(cimg){const cy=y+ih+12;x.font="bold 18px "+FONT;x.fillStyle="#666";x.fillText("콘티 "+n.cut+"번",M,cy);x.drawImage(cimg,M,cy+26,cw,chh);x.strokeStyle="#ccc";x.strokeRect(M+.5,cy+26.5,cw-1,chh-1)}
-        let ty=y;x.font="bold 26px "+FONT;x.fillStyle=color;x.fillText(`${i}.  ${tc(n.t)}`,txtX,ty);
-        const st=n.done?"반영완료":"미반영";x.font="bold 20px "+FONT;const sw=x.measureText(st).width+22;
-        x.fillStyle=n.done?"#1E8757":"#999";x.fillRect(PW-M-sw,ty,sw,32);x.fillStyle="#fff";x.fillText(st,PW-M-sw+11,ty+5);ty+=44;
-        blocks.forEach((b,bi)=>{x.font=b.f+" "+FONT;x.fillStyle=b.col;const lh=parseInt(b.f.replace("bold ",""))*1.45;for(const l of lines[bi]){x.fillText(l,txtX,ty);ty+=lh}ty+=8});
-        y+=rh;x.strokeStyle="#e3e3e3";x.beginPath();x.moveTo(M,y-14);x.lineTo(PW-M,y-14);x.stroke();
-      }
-      y+=20;
-    }
-    await section("자막 수정",subs,"#2557C7");
-    await section("화면 수정",scrs,"#D2382F");
-    const S=segs();
-    if(S.length){
-      newPage();x.fillStyle="#17191E";x.fillRect(M,y,PW-2*M,56);x.fillStyle="#fff";x.font="bold 28px "+FONT;x.fillText(`컷 대조표  영상 ${S.length}컷 · 콘티 ${proj.cuts.length}컷`,M+20,y+13);y+=72;
-      const cols=[M,M+110,M+330,M+580,M+700,M+900];
-      x.font="bold 20px "+FONT;x.fillStyle="#666";["영상 컷","타임코드 / 길이","영상 화면","콘티","콘티 그림","의견"].forEach((h,i)=>x.fillText(h,cols[i],y));y+=36;
-      for(const sg of S){
-        const th=sg.thumb?await loadImg(sg.thumb):null;const cc=sg.conti&&proj.cuts[sg.conti-1];const ci=cc?await loadImg(cc.src):null;
-        const rh=Math.max(th?Math.round(th.height*230/th.width):0,ci?Math.round(ci.height*180/ci.width):0,70)+20;
-        if(y+rh>PH-90){newPage();}
-        x.strokeStyle="#e3e3e3";x.beginPath();x.moveTo(M,y-8);x.lineTo(PW-M,y-8);x.stroke();
-        x.font="bold 30px "+FONT;x.fillStyle="#111";x.fillText(String(sg.no),cols[0]+10,y+4);
-        x.font="22px "+FONT;x.fillStyle="#222";x.fillText(tc(sg.t),cols[1],y+2);x.fillStyle="#888";x.fillText("~ "+tc(sg.end),cols[1],y+32);x.fillText((sg.end-sg.t).toFixed(1)+"초",cols[1],y+62);
-        if(th)x.drawImage(th,cols[2],y,230,Math.round(th.height*230/th.width));
-        x.font="bold 28px "+FONT;x.fillStyle=sg.conti?"#2557C7":"#bbb";x.fillText(sg.conti?sg.conti+"번":"-",cols[3],y+4);
-        if(cc&&cc.dur!=null){x.font="18px "+FONT;x.fillStyle="#888";x.fillText("콘티 "+cc.dur+"초",cols[3],y+42)}
-        if(ci)x.drawImage(ci,cols[4],y,180,Math.round(ci.height*180/ci.width));
-        const cnt=proj.notes.filter(n=>segAt(n.t)&&segAt(n.t).no===sg.no).length;x.font="bold 24px "+FONT;x.fillStyle=cnt?"#D2382F":"#bbb";x.fillText(cnt?cnt+"건":"-",cols[5],y+4);
-        y+=rh;
-      }
-    }
-    const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4",compress:true});
-    pages.forEach((p,i)=>{if(i)doc.addPage();x=p.getContext("2d");x.font="20px "+FONT;x.fillStyle="#888";const s=(i+1)+" / "+pages.length;x.fillText(s,PW-M-x.measureText(s).width,PH-56);
-      doc.addImage(p.toDataURL("image/jpeg",.88),"JPEG",0,0,210,297)});
-    await deliver(doc.output("blob"),safeName(proj.title)+"_수정요청서_"+stamp()+".pdf");
+    const r=await buildPDF();
+    pdfReady={blob:r.blob,name:safeName(proj.title)+"_수정요청서_"+stamp()+".pdf"};
+    $("#pdfInfo").textContent=pdfReady.name+" · "+r.pages+"쪽 · "+(r.blob.size/1048576).toFixed(1)+"MB";
+    $("#mailTo").textContent=MAIL_URL?"받는 곳: "+MAIL_TO:"메일 연결 설정이 아직 안 됐어요";
+    $("#mailBtn").disabled=!MAIL_URL;$("#mailMsg").textContent="";$("#pdfModal").hidden=false;
   }catch(e){toast("PDF를 만들지 못했어요: "+(e&&e.message||e))}
   finally{busy(false)}
+};
+$("#pdfClose").onclick=()=>$("#pdfModal").hidden=true;
+$("#saveBtn").onclick=()=>{if(pdfReady)deliver(pdfReady.blob,pdfReady.name)};
+function toB64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob)})}
+$("#mailBtn").onclick=async()=>{
+  if(!pdfReady||!MAIL_URL)return;
+  const btn=$("#mailBtn"),msg=$("#mailMsg");btn.disabled=true;btn.textContent="보내는 중…";msg.style.color="";msg.textContent="";
+  const payload=JSON.stringify({key:"0704",title:proj.title,author:me,video:proj.videoName,count:proj.notes.length,list:listText(),name:pdfReady.name,pdf:await toB64(pdfReady.blob)});
+  try{
+    const r=await fetch(MAIL_URL,{method:"POST",body:payload});
+    const j=await r.json().catch(()=>({ok:r.ok}));
+    if(!j.ok)throw new Error(j.error||"전송 실패");
+    msg.style.color="var(--ok)";msg.textContent="보냈어요. "+MAIL_TO+" 메일함을 확인해 주세요.";
+  }catch(e){
+    try{await fetch(MAIL_URL,{method:"POST",mode:"no-cors",body:payload});msg.style.color="var(--ok)";msg.textContent="보냈어요. 몇 분 안에 메일함을 확인해 주세요.";}
+    catch(e2){msg.style.color="var(--accent)";msg.textContent="보내지 못했어요. 인터넷 연결을 확인하거나 '기기에 저장'으로 받아 주세요.";}
+  }finally{btn.disabled=false;btn.textContent="메일로 바로 보내기"}
 };
 
 /* ---------- 기타 ---------- */
 function zoom(src){$("#zoomImg").src=src;$("#zoomModal").hidden=false}
 $("#zoomModal").onclick=()=>$("#zoomModal").hidden=true;
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){$("#zoomModal").hidden=true;$("#capModal").hidden=true;closeMenu();return}
+  if(e.key==="Escape"){$("#zoomModal").hidden=true;$("#capModal").hidden=true;$("#pdfModal").hidden=true;closeMenu();return}
   if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)||!$("#capModal").hidden||!$("#gate").hidden)return;
   if(e.code==="Space"&&v.src){e.preventDefault();v.paused?v.play():v.pause()}
   else if(e.key==="ArrowLeft"){e.preventDefault();step(e.shiftKey?-1:-1/FPS)}
