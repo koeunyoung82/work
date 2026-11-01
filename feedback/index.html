@@ -912,7 +912,7 @@ function mailViaForm(){
     add("_subject","[피드백 보드] "+proj.title+" 수정요청서 ("+proj.notes.length+"건, "+me+")");
     add("_captcha","false");add("_template","box");if(to.length>1)add("_cc",to.slice(1).join(","));
     add("보낸 사람",me);add("프로젝트",proj.title);add("기준 영상",proj.videoName||"-");add("수정 목록",listText());
-    const fi=el("input",{type:"file",name:"attachment"});const dt=new DataTransfer();dt.items.add(new File([pdfReady.blob],pdfReady.name,{type:"application/pdf"}));fi.files=dt.files;f.append(fi);
+    const fi=el("input",{type:"file",name:"attachment"});const dt=new DataTransfer();dt.items.add(new File([pdfReady.blob],"feedback_"+stamp()+"_"+String(Date.now()).slice(-4)+".pdf",{type:"application/pdf"}));fi.files=dt.files;add("PDF 파일 이름",pdfReady.name);f.append(fi);
     document.body.append(f);
     let done=false;const fin=ok=>{if(done)return;done=true;f.remove();btn.disabled=false;btn.textContent="네이버 메일로 바로 보내기";
       if(ok){msg.style.color="var(--ok)";msg.textContent="보냈어요 → "+to.join(", ")+". 메일함을 확인해 주세요. (그 주소로 처음 보낼 때는 FormSubmit의 승인 메일이 먼저 와요. 승인 후 한 번 더 보내 주세요)"}
