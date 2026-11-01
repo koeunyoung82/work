@@ -1,0 +1,17 @@
+{
+  "name": "영상 피드백 보드",
+  "short_name": "피드백 보드",
+  "description": "영상 스틸에 자막·화면 수정 내용을 적고 PDF로 정리하는 앱",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F1F2F4",
+  "theme_color": "#D2382F",
+  "lang": "ko",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
