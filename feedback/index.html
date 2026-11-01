@@ -547,7 +547,7 @@ function updateNow(force){
   const cc=g.conti&&proj.cuts[g.conti-1];
   box.replaceChildren(el("span",{class:"vc"},"영상 컷 "+g.no+" / "+S.length),el("span",{class:"cc"},g.conti?"콘티 "+g.conti+"번":"콘티 미연결"),
     el("span",{class:"rg"},tc(g.t)+" ~ "+tc(g.end)+" ("+(g.end-g.t).toFixed(1)+"초"+(cc&&cc.dur!=null?" / 콘티 "+cc.dur+"초":"")+")"),
-    cc&&cc.label?el("span",{class:"small muted"},cc.label.slice(0,60)):null);
+    cc&&cc.label?el("span",{class:"small muted"},cc.label.slice(0,60)):"");
   tl.querySelectorAll("button").forEach(b=>b.classList.toggle("now",Number(b.dataset.no)===g.no));
   document.querySelectorAll("#cutTable tr[data-no]").forEach(r=>r.classList.toggle("now",Number(r.dataset.no)===g.no));
   const doc=$("#contiDoc");doc.querySelectorAll("tr.now").forEach(r=>r.classList.remove("now"));
