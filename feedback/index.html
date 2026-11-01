@@ -886,16 +886,29 @@ $("#pdfBtn").onclick=async()=>{
     const r=await buildPDF();
     pdfReady={blob:r.blob,name:safeName(proj.title)+"_수정요청서_"+stamp()+".pdf"};
     $("#pdfInfo").textContent=pdfReady.name+" · "+r.pages+"쪽 · "+(r.blob.size/1048576).toFixed(1)+"MB";
-    $("#mailTo").textContent=MAIL_URL?"받는 곳: "+MAIL_TO:"메일 연결 설정이 아직 안 됐어요";
-    $("#mailBtn").disabled=!MAIL_URL;$("#mailMsg").textContent="";$("#pdfModal").hidden=false;
+    $("#mailTo").textContent=MAIL_URL?"받는 곳: "+MAIL_TO:"메일 앱이 열리면 받는 사람에 "+MAIL_TO+" 가 들어가 있어요. 첨부가 안 보이면 PDF를 직접 붙여 주세요";
+    $("#mailBtn").textContent=MAIL_URL?"메일로 바로 보내기":"메일 앱으로 보내기";$("#mailBtn").disabled=false;$("#mailMsg").textContent="";$("#pdfModal").hidden=false;
   }catch(e){toast("PDF를 만들지 못했어요: "+(e&&e.message||e))}
   finally{busy(false)}
 };
 $("#pdfClose").onclick=()=>$("#pdfModal").hidden=true;
 $("#saveBtn").onclick=()=>{if(pdfReady)deliver(pdfReady.blob,pdfReady.name)};
+async function mailViaApp(){
+  const msg=$("#mailMsg");const file=new File([pdfReady.blob],pdfReady.name,{type:"application/pdf"});
+  const subject="[피드백 보드] "+proj.title+" 수정요청서";
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:subject,text:subject+"\n받는 곳: "+MAIL_TO});msg.style.color="var(--ok)";msg.textContent="공유 창에서 메일 앱(네이버 메일·Gmail 등)을 골라 "+MAIL_TO+" 로 보내 주세요.";return}
+    catch(e){if(e.name==="AbortError")return}
+  }
+  // 공유가 안 되는 기기: PDF를 저장하고 메일 쓰기 창 열기
+  const a=el("a",{href:URL.createObjectURL(pdfReady.blob),download:pdfReady.name});document.body.append(a);a.click();a.remove();
+  location.href="mailto:"+MAIL_TO+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent("수정요청서 PDF를 첨부합니다.\n\n"+listText());
+  msg.style.color="var(--ok)";msg.textContent="PDF를 저장했어요. 열린 메일 쓰기 창에 저장된 PDF("+pdfReady.name+")를 첨부해서 보내 주세요.";
+}
 function toB64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob)})}
 $("#mailBtn").onclick=async()=>{
-  if(!pdfReady||!MAIL_URL)return;
+  if(!pdfReady)return;
+  if(!MAIL_URL){await mailViaApp();return}
   const btn=$("#mailBtn"),msg=$("#mailMsg");btn.disabled=true;btn.textContent="보내는 중…";msg.style.color="";msg.textContent="";
   const payload=JSON.stringify({key:"0704",title:proj.title,author:me,video:proj.videoName,count:proj.notes.length,list:listText(),name:pdfReady.name,pdf:await toB64(pdfReady.blob)});
   try{
