@@ -133,6 +133,40 @@ figcaption{font-size:11px;color:var(--muted)}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:600px){.f2{grid-template-columns:1fr}}
 .f{display:grid;gap:4px}
+.hwpx{max-height:72vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;color:#111;font-size:14px;line-height:1.55}
+.hwpx p{margin:0 0 6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.hwpx .tw{overflow-x:auto;margin:6px 0 10px}
+.hwpx table{border-collapse:collapse;width:100%;min-width:600px}
+.hwpx td{border:1px solid #9aa0aa;padding:6px 8px;vertical-align:top}
+.hwpx td p{margin:0 0 3px}
+.hwpx tr:first-child td{background:#eef0f3;font-weight:700}
+.hwpx .ci{position:relative;display:block;max-width:min(100%,300px)}
+.hwpx .ci img{display:block;max-width:100%;width:100%;min-width:120px;border-radius:4px;cursor:zoom-in}
+.hwpx .ci b{position:absolute;left:4px;top:4px;background:#17191E;color:#fff;font-size:11px;padding:0 6px;border-radius:4px;font-family:var(--f-mono)}
+.nowcut{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.nowcut .vc{font-weight:800;font-size:16px}
+.nowcut .cc{font-weight:800;font-size:16px;color:var(--sub)}
+.nowcut .rg{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.tl{display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.tl button{border:0;border-radius:0;padding:0;min-width:2px;font-size:11px;font-weight:700;overflow:hidden;color:var(--ink);background:color-mix(in srgb,var(--sub) 14%,var(--surface));border-right:1px solid var(--surface)}
+.tl button:nth-child(even){background:color-mix(in srgb,var(--sub) 26%,var(--surface))}
+.tl button.now{background:var(--sub);color:#fff}
+.ctw{overflow-x:auto;max-height:60vh;overflow-y:auto;border:1px solid var(--line);border-radius:8px}
+.ct{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+.ct th{position:sticky;top:0;background:var(--surface);z-index:1;text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:7px 8px;border-bottom:1px solid var(--line)}
+.ct td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ct tr.now td{background:color-mix(in srgb,var(--sub) 12%,transparent)}
+.ct .vno{font-family:var(--f-mono);font-weight:800;font-size:15px;padding:3px 8px}
+.ct img{width:112px;display:block;border-radius:4px;border:1px solid var(--line);cursor:pointer}
+.ct .tcr{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ct select{width:auto;padding:4px 6px;font-size:13px}
+.ct .lab{max-width:180px;font-size:12px;color:var(--muted)}
+.ct .diff{font-size:12px;font-weight:700}
+.ct .diff.bad{color:var(--accent)}
+.ct .x{padding:2px 8px;font-size:12px}
+.hwpx tr.now td{background:#FFF1B8}
+.hwpx .ci b{cursor:pointer}
+#cutPreview{max-height:120px;border-radius:6px;border:1px solid var(--line);justify-self:start}
 #zoomImg{max-width:100%;max-height:88vh;border-radius:8px;display:block;margin:auto}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 15px;border-radius:8px;z-index:60;max-width:90vw;text-align:center}
 #busy{position:fixed;inset:0;background:var(--shade);z-index:55;display:grid;place-items:center;color:#fff;font-weight:700}
@@ -157,11 +191,13 @@ figcaption{font-size:11px;color:var(--muted)}
 <div class="bar gut">
   <input id="title" class="title" type="text" value="새 프로젝트" aria-label="프로젝트 제목">
   <button id="openVideo" type="button">영상 열기</button>
+  <button id="openCuts2" type="button">콘티 열기</button>
   <button id="pdfBtn" type="button" class="primary">PDF 정리본</button>
   <details class="more" id="more">
     <summary>메뉴</summary>
     <div class="menu">
-      <button type="button" id="openCuts">콘티 열기 (선택)</button>
+      <button type="button" id="openCuts">콘티 열기 (HWPX·이미지)</button>
+      <button type="button" id="clearConti">콘티 닫기</button>
       <hr>
       <button type="button" id="saveProj">수정요청 파일 저장 (주고받기용)</button>
       <button type="button" id="loadProj">수정요청 파일 열기</button>
@@ -174,13 +210,13 @@ figcaption{font-size:11px;color:var(--muted)}
     </div>
   </details>
   <input id="videoFile" type="file" accept="video/*" hidden>
-  <input id="cutsFile" type="file" accept="image/*" multiple hidden>
+  <input id="cutsFile" type="file" accept=".hwpx,.hwp,image/*" multiple hidden>
   <input id="projFile" type="file" accept=".fbproj,.json,application/json" hidden>
 </div>
 
 <main class="gut">
   <div class="col">
-    <section class="panel sticky">
+    <section class="panel">
       <div class="player" id="player">
         <div class="empty" id="playerEmpty"><b>영상을 열어 주세요</b><button type="button" id="openVideo2">영상 열기</button><span class="small">휴대폰 앨범·파일, 노트북 파일 모두 가능 · 용량 제한 없음</span></div>
         <video id="video" controls playsinline hidden></video>
@@ -192,11 +228,27 @@ figcaption{font-size:11px;color:var(--muted)}
         <button type="button" id="fwd1" aria-label="1프레임 앞으로">1f ▶</button>
         <button type="button" id="grab" class="primary" disabled>스틸 잡고 수정 쓰기</button>
       </div>
+      <div class="nowcut" id="nowCut" hidden></div>
+      <div class="tl" id="timeline" hidden></div>
       <div class="keys"><kbd>Space</kbd> 재생/멈춤 · <kbd>←</kbd><kbd>→</kbd> 1프레임 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 1초 · <kbd>S</kbd> 스틸 · 기준 <select id="fps" style="width:auto;padding:1px 6px;font-size:12px"><option>24</option><option selected>30</option><option>60</option></select> fps</div>
     </section>
+    <section class="panel" id="cutPanel" hidden>
+      <div class="row" style="justify-content:space-between">
+        <h2>컷 대조표 <span class="small muted mono" id="cutCount" style="letter-spacing:0"></span></h2>
+        <div class="row">
+          <button type="button" id="autoCuts">자동 컷 찾기</button>
+          <button type="button" id="splitHere">여기서 컷 나누기</button>
+          <button type="button" id="renumber" title="영상 컷 1→콘티 1번, 2→2번… 순서대로 다시 연결">콘티 번호 순서대로</button>
+        </div>
+      </div>
+      <p class="small muted" id="cutHint" style="margin:0"></p>
+      <div class="ctw"><table class="ct" id="cutTable"></table></div>
+    </section>
     <section class="panel" id="cutsPanel" hidden>
-      <div class="row" style="justify-content:space-between"><h2>콘티</h2><span class="small muted" id="cutsInfo"></span></div>
-      <div class="cuts" id="cuts"></div>
+      <div class="row" style="justify-content:space-between"><h2>콘티 <span class="small muted" id="contiName" style="letter-spacing:0"></span></h2>
+        <div class="seg" role="group" aria-label="콘티 보기" id="contiSeg"><button type="button" data-v="doc" aria-pressed="true">문서 보기</button><button type="button" data-v="cuts" aria-pressed="false">컷 모아보기 <span class="mono" id="cutsInfo"></span></button></div></div>
+      <div class="hwpx" id="contiDoc"></div>
+      <div class="cuts" id="cuts" hidden></div>
     </section>
   </div>
 
@@ -218,7 +270,7 @@ figcaption{font-size:11px;color:var(--muted)}
 
 <div class="modal" id="capModal" hidden>
   <div class="sheet">
-    <div class="row"><b>스틸 <span class="mono" id="capTc"></span></b><span class="muted small">손가락이나 마우스로 화면에 표시하세요</span></div>
+    <div class="row"><b>스틸 <span class="mono" id="capTc"></span></b><span class="chip" id="capCutInfo" hidden></span><span class="muted small">손가락이나 마우스로 화면에 표시하세요</span></div>
     <canvas id="draw"></canvas>
     <div class="row">
       <button type="button" class="swatch" data-c="#FF2D2D" style="background:#FF2D2D" aria-pressed="true" aria-label="빨강"></button>
@@ -240,7 +292,7 @@ figcaption{font-size:11px;color:var(--muted)}
         <div class="f"><label for="capAfter">바꿀 자막</label><input id="capAfter" type="text" placeholder="예: 횡성한우축제"></div>
       </div>
       <div class="f"><label for="capText" id="capTextLabel">추가 메모 (선택)</label><textarea id="capText" placeholder="예: 자막 위치를 조금 위로, 글자 크기 키우기"></textarea></div>
-      <div class="f" id="cutField" hidden><label for="capCut">해당 콘티 컷</label><select id="capCut"></select></div>
+      <div class="f" id="cutField" hidden><label for="capCut">해당 콘티 컷</label><select id="capCut"></select><img id="cutPreview" alt="선택한 콘티 컷" hidden></div>
     </div>
     <div class="row" style="justify-content:flex-end">
       <span class="small" id="capErr" style="color:var(--accent);margin-right:auto"></span>
@@ -251,9 +303,10 @@ figcaption{font-size:11px;color:var(--muted)}
 </div>
 
 <div class="modal" id="zoomModal" hidden style="place-items:center"><img id="zoomImg" alt="크게 보기"></div>
-<div id="busy" hidden>PDF 만드는 중…</div>
+<div id="busy" hidden><div style="display:grid;gap:12px;justify-items:center;text-align:center;padding:16px"><span id="busyText">PDF 만드는 중…</span><button type="button" id="busyCancel" hidden>중지</button></div></div>
 <div id="toast" hidden></div>
 
+<script src="jszip.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
 <script>
 (function(){
@@ -264,7 +317,8 @@ const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k
 let me=ls.get("fb_name")||"";
 let proj=blank(), filter="all", videoURL=null;
 
-function blank(){return {app:"video-feedback-board",version:2,title:"새 프로젝트",videoName:"",cuts:[],notes:[]}}
+function blank(){return {app:"video-feedback-board",version:4,title:"새 프로젝트",videoName:"",videoDuration:0,cuts:[],conti:null,vcuts:[],notes:[]}}
+function busy(t,cancel){if(t===false){$("#busy").hidden=true;$("#busyCancel").hidden=true;return}$("#busyText").textContent=t;$("#busy").hidden=false;$("#busyCancel").hidden=!cancel}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600)}
 function tc(sec){sec=Math.max(0,sec||0);const m=Math.floor(sec/60),s=Math.floor(sec%60),f=Math.floor((sec-Math.floor(sec))*FPS+1e-6);return [m,s,f].map(n=>String(n).padStart(2,"0")).join(":")}
@@ -311,9 +365,9 @@ function loadVideo(file){
 $("#openVideo").onclick=$("#openVideo2").onclick=()=>$("#videoFile").click();
 $("#videoFile").addEventListener("change",e=>{loadVideo(e.target.files[0]);e.target.value=""});
 v.addEventListener("error",()=>{if(v.src)toast("이 영상 형식은 열 수 없어요. H.264 MP4로 내보내 주세요")});
-v.addEventListener("loadeddata",()=>$("#grab").disabled=false);
-v.addEventListener("timeupdate",()=>$("#tcNow").textContent=tc(v.currentTime));
-v.addEventListener("seeked",()=>$("#tcNow").textContent=tc(v.currentTime));
+v.addEventListener("loadeddata",()=>{$("#grab").disabled=false;if(v.duration&&Math.abs((proj.videoDuration||0)-v.duration)>.01){proj.videoDuration=v.duration;autosave()}renderCutTable();updateNow(true)});
+v.addEventListener("timeupdate",()=>{$("#tcNow").textContent=tc(v.currentTime);updateNow()});
+v.addEventListener("seeked",()=>{$("#tcNow").textContent=tc(v.currentTime);updateNow()});
 $("#fps").addEventListener("change",e=>{FPS=Number(e.target.value);$("#tcNow").textContent=tc(v.currentTime);render()});
 function step(d){if(!v.src)return;v.pause();v.currentTime=Math.min(Math.max(0,v.currentTime+d),v.duration||0)}
 $("#back1").onclick=()=>step(-1/FPS);$("#fwd1").onclick=()=>step(1/FPS);
@@ -323,27 +377,279 @@ document.addEventListener("drop",e=>{
   e.preventDefault();$("#player").classList.remove("drop");
   const files=[...e.dataTransfer.files];if(!files.length)return;
   const vid=files.find(f=>f.type.startsWith("video/"));if(vid)loadVideo(vid);
-  const imgs=files.filter(f=>f.type.startsWith("image/"));if(imgs.length)loadCuts(imgs);
+  const imgs=files.filter(f=>f.type.startsWith("image/")||/\.hwpx?$/i.test(f.name));if(imgs.length)loadCuts(imgs);
   const fb=files.find(f=>/\.(fbproj|json)$/i.test(f.name));if(fb)fb.text().then(t=>importText(t,fb.name,"merge"));
 });
 
 /* ---------- 콘티 (선택) ---------- */
-$("#openCuts").onclick=()=>{closeMenu();$("#cutsFile").click()};
+$("#openCuts").onclick=$("#openCuts2").onclick=()=>{closeMenu();$("#cutsFile").click()};
 $("#cutsFile").addEventListener("change",e=>{loadCuts([...e.target.files]);e.target.value=""});
 function shrink(file,max=800){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/img.naturalWidth);const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*s);c.height=Math.round(img.naturalHeight*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.8))};img.onerror=()=>{URL.revokeObjectURL(u);rej()};img.src=u})}
 async function loadCuts(files){
   files.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
-  const out=[];for(const f of files){try{out.push({name:f.name,src:await shrink(f)})}catch(e){}}
-  proj.cuts=proj.cuts.concat(out);changed();toast(out.length+"장의 콘티를 불러왔어요");
+  if(files.some(f=>/\.hwp$/i.test(f.name))){toast("HWP는 열 수 없어요. 한글에서 '다른 이름으로 저장 → HWPX'로 저장해 주세요");}
+  const hw=files.find(f=>/\.hwpx$/i.test(f.name));
+  if(hw){
+    if(proj.notes.some(n=>n.cut)&&proj.cuts.length){toast("콘티를 바꾸면 기존 의견의 컷 번호가 새 콘티 기준으로 바뀌어요");}
+    busy("콘티 읽는 중…");
+    try{const r=await parseHWPX(hw);proj.cuts=r.cuts;proj.conti={name:hw.name,blocks:r.blocks};contiView="doc";changed();
+      toast("콘티를 열었어요"+(r.cuts.length?" · 그림 "+r.cuts.length+"컷":""))}
+    catch(e){toast("HWPX를 읽지 못했어요: "+(e&&e.message||e))}
+    finally{busy(false)}
+    return;
+  }
+  const imgs=files.filter(f=>f.type.startsWith("image/"));if(!imgs.length)return;
+  const out=[];for(const f of imgs){try{out.push({name:f.name,src:await shrink(f)})}catch(e){}}
+  proj.cuts=proj.cuts.concat(out);if(!proj.conti)contiView="cuts";changed();toast(out.length+"장의 콘티를 불러왔어요");
+}
+
+/* HWPX 읽기: 글·표·그림을 순서대로 블록으로 */
+async function parseHWPX(file){
+  if(!window.JSZip)throw new Error("압축 도구를 불러오지 못했어요");
+  const zip=await JSZip.loadAsync(file);
+  const files=Object.keys(zip.files);
+  const find=re=>files.filter(n=>re.test(n));
+  const xml=async n=>new DOMParser().parseFromString(await zip.file(n).async("string"),"application/xml");
+  // 그림 id → 파일 경로
+  const idmap={};
+  const hpfName=find(/content\.hpf$/i)[0];
+  let sections=[];
+  if(hpfName){const d=await xml(hpfName);const base=hpfName.includes("/")?"":"";
+    for(const it of d.getElementsByTagName("*")){if(it.localName!=="item")continue;const id=it.getAttribute("id"),href=it.getAttribute("href")||"";
+      if(id&&href){idmap[id]=href;if(/section\d+\.xml$/i.test(href))sections.push(href)}}
+    sections=sections.map(h=>files.find(f=>f===h||f.endsWith("/"+h)||f.endsWith(h))).filter(Boolean);
+  }
+  if(!sections.length)sections=find(/Contents\/section\d+\.xml$/i);
+  sections.sort((a,b)=>Number(a.match(/(\d+)\.xml$/)[1])-Number(b.match(/(\d+)\.xml$/)[1]));
+  if(!sections.length)throw new Error("본문을 찾지 못했어요");
+  const cuts=[],imgCache={};
+  async function imgFor(ref){
+    if(ref in imgCache)return imgCache[ref];
+    let path=idmap[ref];let f=path&&files.find(n=>n===path||n.endsWith("/"+path)||n.endsWith(path));
+    if(!f)f=files.find(n=>/^BinData\//i.test(n)&&n.replace(/^.*\//,"").replace(/\.[^.]+$/,"")===ref);
+    if(!f){imgCache[ref]=null;return null}
+    const ext=f.split(".").pop().toLowerCase();
+    const mime={png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",bmp:"image/bmp",webp:"image/webp"}[ext];
+    if(!mime){imgCache[ref]=null;return null}
+    const blob=new Blob([await zip.file(f).async("uint8array")],{type:mime});
+    try{const src=await shrink(blob,900);cuts.push({name:f.replace(/^.*\//,""),src,label:""});imgCache[ref]=cuts.length-1}catch(e){imgCache[ref]=null}
+    return imgCache[ref];
+  }
+  const kids=n=>[...n.childNodes].filter(c=>c.nodeType===1);
+  // 문단 하나 → 블록 목록
+  async function para(p,out){
+    let buf="";const flush=()=>{if(buf.replace(/\s/g,"")){out.push({type:"text",t:buf.replace(/\s+$/,"")})}buf=""};
+    async function walk(n){
+      for(const c of kids(n)){
+        const k=c.localName;
+        if(k==="t"){for(const x of c.childNodes){if(x.nodeType===3)buf+=x.nodeValue;else if(x.localName==="lineBreak")buf+="\n";else if(x.localName==="tab")buf+="\t";else buf+=x.textContent}}
+        else if(k==="lineBreak"){buf+="\n"}
+        else if(k==="tab"){buf+="\t"}
+        else if(k==="tbl"){flush();out.push(await table(c))}
+        else if(k==="pic"||k==="img"&&c.getAttribute("binaryItemIDRef")){
+          const im=k==="img"?c:[...c.getElementsByTagName("*")].find(x=>x.localName==="img"&&x.getAttribute("binaryItemIDRef"));
+          if(im){const i=await imgFor(im.getAttribute("binaryItemIDRef"));if(i!=null){flush();out.push({type:"img",i})}}}
+        else if(["secPr","ctrl","linesegarray","fieldBegin","fieldEnd","header","footer"].includes(k)){}
+        else await walk(c);
+      }
+    }
+    await walk(p);flush();
+  }
+  async function block(n,out){for(const c of kids(n)){if(c.localName==="p")await para(c,out);else if(c.localName==="subList")await block(c,out)}}
+  async function table(tbl){
+    const rows=[];
+    for(const tr of kids(tbl).filter(c=>c.localName==="tr")){
+      const row=[];
+      for(const tc of kids(tr).filter(c=>c.localName==="tc")){
+        const sp=kids(tc).find(c=>c.localName==="cellSpan");
+        const cell={cs:Number(sp&&sp.getAttribute("colSpan"))||1,rs:Number(sp&&sp.getAttribute("rowSpan"))||1,blocks:[]};
+        await block(tc,cell.blocks);row.push(cell);
+      }
+      // 같은 줄의 글을 그 줄 그림의 설명으로
+      const imgs=[],texts=[];
+      const scan=bs=>{for(const b of bs){if(b.type==="img")imgs.push(b.i);else if(b.type==="text")texts.push(b.t);else if(b.type==="tbl")b.rows.forEach(r=>r.forEach(c=>scan(c.blocks)))}};
+      row.forEach(c=>scan(c.blocks));
+      const lab=texts.join(" / ").replace(/\s+/g," ").trim();
+      const dm=texts.map(x=>x.trim()).map(x=>x.match(/^(\d{1,2}):(\d{2})(?:[:.](\d{1,2}))?$/)||x.match(/^(\d+(?:\.\d+)?)\s*(?:초|s|sec|")$/i)).find(Boolean);
+      const dur=dm?(dm[2]!==undefined&&dm[0].includes(":")?Number(dm[1])*60+Number(dm[2]):Number(dm[1])):null;
+      imgs.forEach(i=>{if(cuts[i]&&!cuts[i].label){cuts[i].label=lab.slice(0,80);if(dur!=null&&imgs.length===1)cuts[i].dur=dur}});
+      rows.push(row);
+    }
+    return {type:"tbl",rows};
+  }
+  const blocks=[];
+  for(const s of sections){const d=await xml(s);const root=d.documentElement;if(root.localName==="parsererror"||d.getElementsByTagName("parsererror").length)continue;await block(root,blocks)}
+  if(!blocks.length&&!cuts.length)throw new Error("내용이 비어 있어요");
+  return {blocks,cuts};
+}
+
+let contiView="doc";
+document.querySelectorAll("#contiSeg button").forEach(b=>b.onclick=()=>{contiView=b.dataset.v;renderCuts()});
+$("#clearConti").onclick=()=>{closeMenu();proj.cuts=[];proj.conti=null;changed();toast("콘티를 닫았어요")};
+function renderDoc(blocks,box){
+  for(const b of blocks){
+    if(b.type==="text")box.append(el("p",{},b.t));
+    else if(b.type==="img"){const c=proj.cuts[b.i];if(!c)continue;const im=el("img",{src:c.src,alt:"콘티 "+(b.i+1)+"번",loading:"lazy"});im.onclick=()=>zoom(c.src);const bd=el("b",{title:"이 콘티 컷의 영상 위치로 이동"},"▶ "+(b.i+1));bd.onclick=()=>jumpConti(b.i+1);box.append(el("span",{class:"ci","data-cut":String(b.i+1)},im,bd))}
+    else if(b.type==="tbl"){const t=el("table");const tb=el("tbody");t.append(tb);
+      for(const r of b.rows){const tr=el("tr");for(const c of r){const td=el("td",c.cs>1||c.rs>1?{colspan:c.cs,rowspan:c.rs}:{});renderDoc(c.blocks,td);tr.append(td)}tb.append(tr)}
+      box.append(el("div",{class:"tw"},t))}
+  }
 }
 function renderCuts(){
-  $("#cutsPanel").hidden=!proj.cuts.length;$("#cutField").hidden=!proj.cuts.length;
-  $("#cutsInfo").textContent=proj.cuts.length+"컷";
-  const box=$("#cuts");box.replaceChildren();
-  proj.cuts.forEach((c,i)=>{const img=el("img",{src:c.src,alt:"콘티 "+(i+1)+"번"});img.onclick=()=>zoom(c.src);
-    box.append(el("div",{class:"cut"},img,el("span",{class:"no mono"},i+1),el("button",{class:"x",type:"button",title:"빼기",onclick:()=>{proj.cuts.splice(i,1);changed()}},"✕")))});
+  const has=proj.cuts.length||(proj.conti&&proj.conti.blocks.length);
+  $("#cutsPanel").hidden=!has;$("#cutField").hidden=!proj.cuts.length;$("#clearConti").hidden=!has;
+  if(!proj.conti)contiView="cuts";
+  $("#contiSeg").hidden=!proj.conti;
+  document.querySelectorAll("#contiSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===contiView)));
+  $("#contiName").textContent=proj.conti?proj.conti.name:"";
+  $("#cutsInfo").textContent=proj.cuts.length?proj.cuts.length:"";
+  const doc=$("#contiDoc");doc.hidden=contiView!=="doc";
+  if(contiView==="doc"&&proj.conti&&doc.dataset.key!==proj.conti.name+proj.cuts.length){doc.replaceChildren();renderDoc(proj.conti.blocks,doc);doc.dataset.key=proj.conti.name+proj.cuts.length}
+  if(!proj.conti){doc.replaceChildren();doc.dataset.key=""}
+  const box=$("#cuts");box.hidden=contiView!=="cuts";box.replaceChildren();
+  if(contiView==="cuts")proj.cuts.forEach((c,i)=>{const img=el("img",{src:c.src,alt:"콘티 "+(i+1)+"번",title:c.label||c.name});img.onclick=()=>zoom(c.src);
+    box.append(el("div",{class:"cut"},img,el("span",{class:"no mono"},i+1),proj.conti?null:el("button",{class:"x",type:"button",title:"빼기",onclick:()=>{proj.cuts.splice(i,1);changed()}},"✕")))});
   const sel=$("#capCut"),keep=sel.value;sel.replaceChildren(el("option",{value:""},"선택 안 함"));
-  for(let n=1;n<=proj.cuts.length;n++)sel.append(el("option",{value:String(n)},n+"번 컷"));sel.value=keep;
+  proj.cuts.forEach((c,i)=>sel.append(el("option",{value:String(i+1)},(i+1)+"번 컷"+(c.label?" · "+c.label.slice(0,30):""))));sel.value=keep;
+  showCutPreview();
+}
+function showCutPreview(){const c=proj.cuts[Number($("#capCut").value)-1];$("#cutPreview").hidden=!c;if(c)$("#cutPreview").src=c.src}
+$("#capCut").addEventListener("change",showCutPreview);
+
+/* ---------- 영상 컷 · 콘티 대조 ---------- */
+function vdur(){return (v.duration&&isFinite(v.duration))?v.duration:(proj.videoDuration||0)}
+function segs(){
+  const vc=(proj.vcuts||[]).slice().sort((a,b)=>a.t-b.t);const D=vdur();
+  return vc.map((c,i)=>({no:i+1,t:c.t,end:i+1<vc.length?vc[i+1].t:(D||c.t),conti:c.conti?Number(c.conti):0,thumb:c.thumb,ref:c}));
+}
+function segAt(t){const S=segs();if(!S.length)return null;let r=S[0];for(const g of S){if(g.t<=t+1e-4)r=g;else break}return r}
+function seekTo(t){if(!v.src){toast("먼저 영상을 열어 주세요");return}v.pause();v.currentTime=t+0.3/FPS}
+function jumpConti(n){const g=segs().find(x=>x.conti===n);if(g){seekTo(g.t);window.scrollTo({top:0,behavior:"smooth"})}else toast("콘티 "+n+"번에 연결된 영상 컷이 아직 없어요")}
+function thumbFrom(vid){try{const c=document.createElement("canvas");c.width=192;c.height=Math.round(192*(vid.videoHeight||9)/(vid.videoWidth||16));c.getContext("2d").drawImage(vid,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.7)}catch(e){return ""}}
+let lastNow=-1;
+function updateNow(force){
+  const S=segs();const box=$("#nowCut"),tl=$("#timeline");
+  box.hidden=!S.length;tl.hidden=!S.length||!vdur();
+  if(!S.length){lastNow=-1;return}
+  const g=segAt(v.currentTime||0);if(!g)return;
+  if(g.no===lastNow&&!force)return;lastNow=g.no;
+  const cc=g.conti&&proj.cuts[g.conti-1];
+  box.replaceChildren(el("span",{class:"vc"},"영상 컷 "+g.no+" / "+S.length),el("span",{class:"cc"},g.conti?"콘티 "+g.conti+"번":"콘티 미연결"),
+    el("span",{class:"rg"},tc(g.t)+" ~ "+tc(g.end)+" ("+(g.end-g.t).toFixed(1)+"초"+(cc&&cc.dur!=null?" / 콘티 "+cc.dur+"초":"")+")"),
+    cc&&cc.label?el("span",{class:"small muted"},cc.label.slice(0,60)):null);
+  tl.querySelectorAll("button").forEach(b=>b.classList.toggle("now",Number(b.dataset.no)===g.no));
+  document.querySelectorAll("#cutTable tr[data-no]").forEach(r=>r.classList.toggle("now",Number(r.dataset.no)===g.no));
+  const doc=$("#contiDoc");doc.querySelectorAll("tr.now").forEach(r=>r.classList.remove("now"));
+  if(g.conti){const ci=doc.querySelector('.ci[data-cut="'+g.conti+'"]');const tr=ci&&ci.closest("tr");
+    if(tr){tr.classList.add("now");if(!doc.hidden){doc.scrollTop+=tr.getBoundingClientRect().top-doc.getBoundingClientRect().top-36}}}
+}
+function renderCutTable(){
+  const S=segs(),D=vdur();
+  $("#cutPanel").hidden=!(v.src||S.length);
+  $("#cutCount").textContent=S.length?"영상 "+S.length+"컷 · 콘티 "+proj.cuts.length+"컷":"";
+  $("#cutHint").textContent=S.length?"영상 컷 번호를 누르면 그 장면으로 이동해요. 콘티 번호가 다르면 직접 골라 주세요.":(v.src?"'자동 컷 찾기'를 누르면 장면이 바뀌는 곳을 찾아 영상 컷과 타임코드를 만들어요. 재생하다 '여기서 컷 나누기'로 직접 나눌 수도 있어요.":"");
+  const tl=$("#timeline");tl.replaceChildren();
+  if(S.length&&D)for(const g of S){const b=el("button",{type:"button","data-no":String(g.no),title:"영상 컷 "+g.no+(g.conti?" · 콘티 "+g.conti+"번":"")+" · "+tc(g.t),style:"flex:"+Math.max(.001,g.end-g.t)+" 1 0"},(g.end-g.t)/D>.03?String(g.no):"");b.onclick=()=>seekTo(g.t);tl.append(b)}
+  const t=$("#cutTable");t.replaceChildren();if(!S.length)return;
+  t.append(el("thead",{},el("tr",{},...["영상 컷","영상 화면","타임코드","길이","콘티 컷","콘티 그림","의견",""].map(h=>el("th",{},h)))));
+  const tb=el("tbody");
+  for(const g of S){
+    const cc=g.conti&&proj.cuts[g.conti-1];
+    const sel=el("select",{"aria-label":"영상 컷 "+g.no+"의 콘티 번호"});sel.append(el("option",{value:""},"-"));
+    proj.cuts.forEach((c,i)=>sel.append(el("option",{value:String(i+1)},(i+1)+"번")));sel.value=g.conti&&proj.cuts[g.conti-1]?String(g.conti):"";
+    sel.onchange=()=>{g.ref.conti=sel.value?Number(sel.value):0;changed()};
+    const len=g.end-g.t;let diffEl=null;
+    if(cc&&cc.dur!=null){const d=len-cc.dur;diffEl=el("div",{class:"diff"+(Math.abs(d)>=1?" bad":"")},"콘티 "+cc.dur+"초 ("+(d>=0?"+":"")+d.toFixed(1)+")")}
+    const th=g.thumb?el("img",{src:g.thumb,alt:"영상 컷 "+g.no}):el("span",{class:"muted small"},"-");if(g.thumb)th.onclick=()=>seekTo(g.t);
+    const ci=cc?el("img",{src:cc.src,alt:"콘티 "+g.conti+"번"}):el("span",{class:"muted small"},"-");if(cc)ci.onclick=()=>zoom(cc.src);
+    const cnt=proj.notes.filter(n=>{const s=segAt(n.t);return s&&s.no===g.no}).length;
+    const del=g.no>1?el("button",{type:"button",class:"x",title:"이 컷 나누기 취소 (앞 컷과 합치기)"},"합치기"):"";
+    if(del)del.onclick=()=>{proj.vcuts=proj.vcuts.filter(c=>c!==g.ref);changed();toast("영상 컷 "+(g.no-1)+"과 합쳤어요")};
+    tb.append(el("tr",{"data-no":String(g.no)},
+      el("td",{},el("button",{type:"button",class:"vno",onclick:()=>seekTo(g.t)},g.no)),
+      el("td",{},th),
+      el("td",{class:"tcr"},tc(g.t),el("br"),el("span",{class:"muted"},"~ "+tc(g.end))),
+      el("td",{class:"tcr"},len.toFixed(1)+"초",diffEl),
+      el("td",{},sel),
+      el("td",{},ci,cc&&cc.label?el("div",{class:"lab"},cc.label.slice(0,50)):null),
+      el("td",{},cnt?el("b",{style:"color:var(--accent)"},cnt+"건"):el("span",{class:"muted"},"-")),
+      el("td",{},del)));
+  }
+  t.append(tb);lastNow=-1;
+}
+$("#splitHere").onclick=()=>{
+  if(!v.src||!v.videoWidth){toast("먼저 영상을 열어 주세요");return}
+  v.pause();const t=Math.round(v.currentTime*FPS)/FPS;
+  if(!proj.vcuts.length)proj.vcuts=[{t:0,conti:proj.cuts.length?1:0,thumb:""}];
+  if(proj.vcuts.some(c=>Math.abs(c.t-t)<0.5/FPS)){toast("이미 여기서 나뉘어 있어요");return}
+  const prev=segAt(t);proj.vcuts.push({t,conti:prev&&prev.conti?Math.min(prev.conti+1,proj.cuts.length||prev.conti+1):0,thumb:thumbFrom(v)});
+  proj.vcuts.sort((a,b)=>a.t-b.t);changed();toast(tc(t)+"에서 컷을 나눴어요");
+  if(proj.vcuts[0]&&!proj.vcuts[0].thumb){/* 첫 컷 썸네일은 자동 찾기 때 채워짐 */}
+};
+$("#renumber").onclick=()=>{if(!proj.vcuts.length)return;proj.vcuts.sort((a,b)=>a.t-b.t).forEach((c,i)=>c.conti=i<proj.cuts.length?i+1:0);changed();toast("콘티 번호를 순서대로 연결했어요")};
+
+let autoArm=0,cancelDetect=false;
+$("#busyCancel").onclick=()=>{cancelDetect=true};
+$("#autoCuts").onclick=async()=>{
+  if(!v.src||!v.videoWidth){toast("먼저 영상을 열어 주세요");return}
+  if(proj.vcuts.length>1&&Date.now()-autoArm>4000){autoArm=Date.now();toast("지금 나눈 컷이 새로 바뀌어요. 한 번 더 누르면 다시 찾아요");return}
+  v.pause();cancelDetect=false;
+  try{const res=await detectCuts();if(!res)return;
+    proj.vcuts=res.map((c,i)=>({t:c.t,thumb:c.thumb,conti:i<proj.cuts.length?i+1:0}));changed();
+    toast("영상 컷 "+res.length+"개를 찾았어요"+(proj.cuts.length&&proj.cuts.length!==res.length?" · 콘티는 "+proj.cuts.length+"컷이라 번호를 확인해 주세요":""));
+    $("#cutPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){toast("컷을 찾지 못했어요: "+(e&&e.message||e))}
+  finally{busy(false)}
+};
+function onceEv(t,ev){return new Promise((res,rej)=>{const ok=()=>{t.removeEventListener("error",bad);res()};const bad=()=>{t.removeEventListener(ev,ok);rej(new Error("영상을 읽지 못했어요"))};t.addEventListener(ev,ok,{once:true});t.addEventListener("error",bad,{once:true})})}
+async function detectCuts(){
+  busy("컷 찾는 중… 0%",true);
+  const dv=document.createElement("video");dv.muted=true;dv.playsInline=true;dv.preload="auto";
+  dv.setAttribute("playsinline","");dv.style.cssText="position:fixed;left:-9999px;top:0;width:64px;height:36px;opacity:0;pointer-events:none";
+  document.body.append(dv);dv.src=v.src;
+  try{
+    await onceEv(dv,"loadeddata");
+    const D=dv.duration;const W=64,H=36;const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d",{willReadFrequently:true});
+    const sig=()=>{g.drawImage(dv,0,0,W,H);const d=g.getImageData(0,0,W,H).data;const a=new Float32Array(W*H);for(let i=0;i<a.length;i++)a[i]=d[4*i]*.3+d[4*i+1]*.59+d[4*i+2]*.11;return a};
+    const diff=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=Math.abs(a[i]-b[i]);return s/a.length};
+    const seek=async t=>{dv.currentTime=Math.min(Math.max(0,t),D-0.001);await onceEv(dv,"seeked");if(dv.requestVideoFrameCallback)await new Promise(r=>{let done=false;dv.requestVideoFrameCallback(()=>{done=true;r()});setTimeout(()=>{if(!done)r()},120)})};
+    // 1) 빠르게 재생하며 장면 차이 기록
+    const samples=[];let prev=null;
+    await new Promise((resolve,reject)=>{
+      let stop=false;
+      const take=(t)=>{if(stop)return;const s=sig();if(prev)samples.push({t0:prev.t,t1:t,d:diff(prev.s,s)});prev={t,s};$("#busyText").textContent="컷 찾는 중… "+Math.min(99,Math.round(t/D*100))+"%"};
+      const finish=()=>{if(stop)return;stop=true;resolve()};
+      dv.addEventListener("ended",finish,{once:true});
+      const tick=()=>{if(stop)return;if(cancelDetect){stop=true;dv.pause();resolve();return}};
+      if(dv.requestVideoFrameCallback){const cb=(now,m)=>{tick();if(stop)return;take(m.mediaTime);dv.requestVideoFrameCallback(cb)};dv.requestVideoFrameCallback(cb)}
+      else{const iv=setInterval(()=>{tick();if(stop){clearInterval(iv);return}take(dv.currentTime)},40);dv.addEventListener("ended",()=>clearInterval(iv),{once:true})}
+      dv.playbackRate=4;dv.play().catch(e=>{stop=true;reject(new Error("영상을 재생하지 못했어요"))});
+    });
+    if(cancelDetect){toast("컷 찾기를 멈췄어요");return null}
+    dv.pause();
+    // 2) 기준값 정하기
+    const ds=samples.map(x=>x.d).sort((a,b)=>a-b);const med=ds.length?ds[Math.floor(ds.length/2)]:0;
+    const th=Math.max(14,med*4+6);
+    const cand=[];for(const x of samples){if(x.d>=th&&(!cand.length||x.t1-cand[cand.length-1].t1>0.3))cand.push(x)}
+    // 3) 프레임 단위로 정확한 위치 찾기
+    const out=[];await seek(0.01);out.push({t:0,thumb:thumbFrom(dv)});
+    let k=0;
+    for(const x of cand){
+      if(cancelDetect){toast("컷 찾기를 멈췄어요");return null}
+      $("#busyText").textContent="타임코드 맞추는 중… "+(++k)+" / "+cand.length;
+      let lo=Math.max(0,x.t0),hi=Math.min(D,x.t1);
+      if(hi-lo>1.5)lo=hi-1.5;
+      await seek(Math.max(0,Math.floor(lo*FPS)+.5)/FPS);const A=sig();await seek((Math.ceil(hi*FPS)+.5)/FPS);const B=sig();
+      if(diff(A,B)<th*.6)continue;
+      // 프레임 번호로 이분 탐색 (프레임 가운데로 이동해 경계 오차 없앰)
+      let fa=Math.floor(lo*FPS),fb=Math.ceil(hi*FPS),guard=0;
+      while(fb-fa>1&&guard++<14){const fm=Math.floor((fa+fb)/2);await seek((fm+.5)/FPS);const m=sig();if(diff(m,A)<diff(m,B))fa=fm;else fb=fm}
+      const t=fb/FPS;
+      if(t-out[out.length-1].t<0.25)continue;
+      await seek(t+0.3/FPS);out.push({t,thumb:thumbFrom(dv)});
+    }
+    return out;
+  }finally{dv.removeAttribute("src");dv.load();dv.remove()}
 }
 
 /* ---------- 스틸 + 표시 ---------- */
@@ -358,7 +664,7 @@ function grab(){
   const w=Math.min(1280,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);
   base=document.createElement("canvas");base.width=w;base.height=h;base.getContext("2d").drawImage(v,0,0,w,h);
   cv.width=w;cv.height=h;shapes=[];redraw();
-  $("#capTc").textContent=tc(capT);["#capText","#capBefore","#capAfter"].forEach(s=>$(s).value="");$("#capCut").value="";$("#capErr").textContent="";
+  $("#capTc").textContent=tc(capT);["#capText","#capBefore","#capAfter"].forEach(s=>$(s).value="");const sg=segAt(capT);$("#capCut").value=sg&&sg.conti&&proj.cuts[sg.conti-1]?String(sg.conti):"";showCutPreview();$("#capErr").textContent="";$("#capCutInfo").hidden=!sg;if(sg)$("#capCutInfo").textContent="영상 컷 "+sg.no+(sg.conti?" · 콘티 "+sg.conti+"번":"");
   setKind(kind);$("#capModal").hidden=false;$("#capModal").scrollTop=0;
 }
 $("#grab").onclick=grab;
@@ -412,7 +718,8 @@ function renderNotes(){
     const top=el("div",{class:"top"},
       el("button",{class:"tcbtn",type:"button",title:"이 장면으로 이동",onclick:()=>{if(!v.src){toast("먼저 영상을 열어 주세요");return}v.pause();v.currentTime=n.t;window.scrollTo({top:0,behavior:"smooth"})}},tc(n.t)),
       el("span",{class:"kind "+k},k==="sub"?"자막":"화면"),
-      n.cut?el("span",{class:"chip"},n.cut+"번 컷"):null,
+      segAt(n.t)?el("span",{class:"chip"},"영상 컷 "+segAt(n.t).no):null,
+      n.cut?el("span",{class:"chip",style:"color:var(--sub);border-color:var(--sub)"},"콘티 "+n.cut+"번"):null,
       el("span",{class:"meta"},(n.author||"")+" · "+when(n.createdAt)));
     const pics=el("div",{class:"pics"});
     if(n.still){const im=el("img",{src:n.still,alt:"스틸 "+tc(n.t),loading:"lazy"});im.onclick=()=>zoom(n.still);pics.append(el("figure",{},im))}
@@ -434,7 +741,7 @@ function renderNotes(){
       el("div",{class:"acts"},el("label",{for:"d-"+n.id},chk,"반영 완료"),n.done&&n.doneBy?el("span",{class:"small muted"},"확인: "+n.doneBy):null,el("span",{class:"rb"},edit,del))));
   }
 }
-function render(){if(document.activeElement!==$("#title"))$("#title").value=proj.title;renderCuts();renderNotes()}
+function render(){if(document.activeElement!==$("#title"))$("#title").value=proj.title;renderCuts();renderCutTable();renderNotes();updateNow(true)}
 $("#title").addEventListener("input",e=>{proj.title=e.target.value;autosave()});
 
 /* ---------- 파일 저장 · 공유 ---------- */
@@ -457,7 +764,8 @@ function importText(text,name,mode){
   if(mode==="replace"){proj=Object.assign(blank(),data);toast("파일을 열었어요")}
   else{let add=0,upd=0;const map=new Map(proj.notes.map(n=>[n.id,n]));
     for(const n of data.notes){const m=map.get(n.id);if(!m){proj.notes.push(n);add++}else if((n.updatedAt||0)>(m.updatedAt||0)){Object.assign(m,n);upd++}}
-    if(!proj.cuts.length&&Array.isArray(data.cuts))proj.cuts=data.cuts;
+    if(!proj.cuts.length&&Array.isArray(data.cuts)){proj.cuts=data.cuts;if(data.conti)proj.conti=data.conti}
+    if(!(proj.vcuts||[]).length&&Array.isArray(data.vcuts))proj.vcuts=data.vcuts;
     if(!proj.videoName)proj.videoName=data.videoName||"";
     if(proj.title==="새 프로젝트"&&data.title)proj.title=data.title;
     proj.notes.sort((a,b)=>a.t-b.t);toast("새 의견 "+add+"개"+(upd?", 바뀐 의견 "+upd+"개":"")+" 합쳤어요")}
@@ -470,7 +778,7 @@ $("#newProj").onclick=()=>{
 };
 $("#copyList").onclick=async()=>{closeMenu();
   if(!proj.notes.length){toast("복사할 요청이 없어요");return}
-  const line=(n,i)=>`${i+1}. [${tc(n.t)}] ${kindOf(n)==="sub"?"[자막] "+(n.before?n.before+" → ":"")+(n.after||""):"[화면]"}${n.text?" "+n.text:""} — ${n.author||""}${n.done?" (반영완료)":""}`;
+  const line=(n,i)=>`${i+1}. [${tc(n.t)}]${segAt(n.t)?" [영상 컷 "+segAt(n.t).no+"]":""}${n.cut?" [콘티 "+n.cut+"번]":""} ${kindOf(n)==="sub"?"[자막] "+(n.before?n.before+" → ":"")+(n.after||""):"[화면]"}${n.text?" "+n.text:""} — ${n.author||""}${n.done?" (반영완료)":""}`;
   const txt=[proj.title+" 수정 요청",""].concat(proj.notes.map(line)).join("\n");
   try{await navigator.clipboard.writeText(txt);toast("목록을 복사했어요")}catch(e){toast("복사하지 못했어요")}
 };
@@ -482,7 +790,7 @@ function wrap(c,text,maxW){const out=[];for(const para of String(text||"").split
 $("#pdfBtn").onclick=async()=>{
   if(!proj.notes.length){toast("수정 요청이 아직 없어요");return}
   if(!window.jspdf){toast("PDF 도구를 불러오지 못했어요. 인터넷 연결 후 다시 열어 주세요");return}
-  $("#busy").hidden=false;await new Promise(r=>setTimeout(r,30));
+  busy("PDF 만드는 중…");await new Promise(r=>setTimeout(r,30));
   try{
     const pages=[];let c,x,y;
     const newPage=()=>{const cv=document.createElement("canvas");cv.width=PW;cv.height=PH;x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,PW,PH);x.textBaseline="top";pages.push(cv);c=cv;y=M;
@@ -503,15 +811,18 @@ $("#pdfBtn").onclick=async()=>{
       let i=0;
       for(const n of list){i++;
         const img=n.still?await loadImg(n.still):null;const ih=img?Math.round(img.height*imgW/img.width):0;
+        const cc=n.cut&&proj.cuts[Number(n.cut)-1];const cimg=cc?await loadImg(cc.src):null;const cw=Math.round(imgW*.55),chh=cimg?Math.round(cimg.height*cw/cimg.width):0;const lh0=ih+(cimg?chh+44:0);
         x.font="bold 26px "+FONT;
         const blocks=[];
         if(kindOf(n)==="sub"){if(n.before)blocks.push({f:"24px",col:"#888",t:"현재: "+n.before});if(n.after)blocks.push({f:"bold 27px",col:"#111",t:"수정: "+n.after})}
         if(n.text)blocks.push({f:"25px",col:"#222",t:n.text});
-        blocks.push({f:"20px",col:"#888",t:[n.author,when(n.createdAt),n.cut?n.cut+"번 컷":""].filter(Boolean).join(" · ")});
+        const sg=segAt(n.t);blocks.push({f:"bold 21px",col:"#2557C7",t:[sg?"영상 컷 "+sg.no+" ("+tc(sg.t)+"~"+tc(sg.end)+")":"",n.cut?"콘티 "+n.cut+"번":""].filter(Boolean).join("  ·  ")||" "});
+        blocks.push({f:"20px",col:"#888",t:[n.author,when(n.createdAt)].filter(Boolean).join(" · ")});
         let th=44;const lines=blocks.map(b=>{x.font=b.f+" "+FONT;const ls=wrap(x,b.t,txtW);th+=ls.length*(parseInt(b.f.replace("bold ",""))*1.45)+8;return ls});
-        const rh=Math.max(ih,th)+30;
+        const rh=Math.max(lh0,th)+30;
         if(y+rh>PH-90)newPage();
         if(img){x.drawImage(img,M,y,imgW,ih);x.strokeStyle="#ccc";x.lineWidth=1;x.strokeRect(M+.5,y+.5,imgW-1,ih-1)}
+        if(cimg){const cy=y+ih+12;x.font="bold 18px "+FONT;x.fillStyle="#666";x.fillText("콘티 "+n.cut+"번",M,cy);x.drawImage(cimg,M,cy+26,cw,chh);x.strokeStyle="#ccc";x.strokeRect(M+.5,cy+26.5,cw-1,chh-1)}
         let ty=y;x.font="bold 26px "+FONT;x.fillStyle=color;x.fillText(`${i}.  ${tc(n.t)}`,txtX,ty);
         const st=n.done?"반영완료":"미반영";x.font="bold 20px "+FONT;const sw=x.measureText(st).width+22;
         x.fillStyle=n.done?"#1E8757":"#999";x.fillRect(PW-M-sw,ty,sw,32);x.fillStyle="#fff";x.fillText(st,PW-M-sw+11,ty+5);ty+=44;
@@ -522,12 +833,32 @@ $("#pdfBtn").onclick=async()=>{
     }
     await section("자막 수정",subs,"#2557C7");
     await section("화면 수정",scrs,"#D2382F");
+    const S=segs();
+    if(S.length){
+      newPage();x.fillStyle="#17191E";x.fillRect(M,y,PW-2*M,56);x.fillStyle="#fff";x.font="bold 28px "+FONT;x.fillText(`컷 대조표  영상 ${S.length}컷 · 콘티 ${proj.cuts.length}컷`,M+20,y+13);y+=72;
+      const cols=[M,M+110,M+330,M+580,M+700,M+900];
+      x.font="bold 20px "+FONT;x.fillStyle="#666";["영상 컷","타임코드 / 길이","영상 화면","콘티","콘티 그림","의견"].forEach((h,i)=>x.fillText(h,cols[i],y));y+=36;
+      for(const sg of S){
+        const th=sg.thumb?await loadImg(sg.thumb):null;const cc=sg.conti&&proj.cuts[sg.conti-1];const ci=cc?await loadImg(cc.src):null;
+        const rh=Math.max(th?Math.round(th.height*230/th.width):0,ci?Math.round(ci.height*180/ci.width):0,70)+20;
+        if(y+rh>PH-90){newPage();}
+        x.strokeStyle="#e3e3e3";x.beginPath();x.moveTo(M,y-8);x.lineTo(PW-M,y-8);x.stroke();
+        x.font="bold 30px "+FONT;x.fillStyle="#111";x.fillText(String(sg.no),cols[0]+10,y+4);
+        x.font="22px "+FONT;x.fillStyle="#222";x.fillText(tc(sg.t),cols[1],y+2);x.fillStyle="#888";x.fillText("~ "+tc(sg.end),cols[1],y+32);x.fillText((sg.end-sg.t).toFixed(1)+"초",cols[1],y+62);
+        if(th)x.drawImage(th,cols[2],y,230,Math.round(th.height*230/th.width));
+        x.font="bold 28px "+FONT;x.fillStyle=sg.conti?"#2557C7":"#bbb";x.fillText(sg.conti?sg.conti+"번":"-",cols[3],y+4);
+        if(cc&&cc.dur!=null){x.font="18px "+FONT;x.fillStyle="#888";x.fillText("콘티 "+cc.dur+"초",cols[3],y+42)}
+        if(ci)x.drawImage(ci,cols[4],y,180,Math.round(ci.height*180/ci.width));
+        const cnt=proj.notes.filter(n=>segAt(n.t)&&segAt(n.t).no===sg.no).length;x.font="bold 24px "+FONT;x.fillStyle=cnt?"#D2382F":"#bbb";x.fillText(cnt?cnt+"건":"-",cols[5],y+4);
+        y+=rh;
+      }
+    }
     const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4",compress:true});
     pages.forEach((p,i)=>{if(i)doc.addPage();x=p.getContext("2d");x.font="20px "+FONT;x.fillStyle="#888";const s=(i+1)+" / "+pages.length;x.fillText(s,PW-M-x.measureText(s).width,PH-56);
       doc.addImage(p.toDataURL("image/jpeg",.88),"JPEG",0,0,210,297)});
     await deliver(doc.output("blob"),safeName(proj.title)+"_수정요청서_"+stamp()+".pdf");
   }catch(e){toast("PDF를 만들지 못했어요: "+(e&&e.message||e))}
-  finally{$("#busy").hidden=true}
+  finally{busy(false)}
 };
 
 /* ---------- 기타 ---------- */
