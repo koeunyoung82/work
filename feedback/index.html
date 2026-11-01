@@ -173,6 +173,26 @@ figcaption{font-size:11px;color:var(--muted)}
 #cutPreview{max-height:120px;border-radius:6px;border:1px solid var(--line);justify-self:start}
 #zoomImg{max-width:100%;max-height:88vh;border-radius:8px;display:block;margin:auto}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 15px;border-radius:8px;z-index:60;max-width:90vw;text-align:center}
+#dash{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dhead{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line);padding-block:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.dtitle{display:flex;gap:12px;align-items:center}.dtitle h1{margin:0;font-size:20px}.dtitle .mark{width:8px;height:28px;background:var(--accent);border-radius:3px}
+.dbody{padding-block:16px;display:grid;gap:14px;max-width:1500px;margin:0 auto}
+.dtools{gap:10px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0}
+.pcard.cur{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.pthumb{aspect-ratio:16/9;background:#111;display:grid;place-items:center;color:#8a909c;font-size:13px;cursor:pointer;border:0;border-radius:0;padding:0;width:100%}
+.pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pinfo{padding:12px;display:grid;gap:6px;align-content:start}
+.pinfo h3{margin:0;font-size:16px;overflow-wrap:anywhere}
+.pinfo .cl{justify-self:start;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;background:var(--sub-bg);color:var(--sub)}
+.pinfo .stat{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.pinfo .kinds{display:flex;flex-wrap:wrap;gap:4px}
+.pinfo .acts2{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.pinfo .acts2 button{font-size:13px;padding:6px 10px}
+.pinfo .acts2 .open{flex:1}
+.dempty{border:1px dashed var(--line);border-radius:12px;padding:30px;text-align:center;color:var(--muted);grid-column:1/-1}
+#dashBtn{font-weight:700}
 #busy{position:fixed;inset:0;background:var(--shade);z-index:55;display:grid;place-items:center;color:#fff;font-weight:700}
 </style>
 </head>
@@ -182,7 +202,7 @@ figcaption{font-size:11px;color:var(--muted)}
   <form id="gateForm" autocomplete="off">
     <div class="mark" aria-hidden="true"></div>
     <h1>영상 피드백 보드</h1>
-    <p class="muted small" style="margin:0">이름을 적고 비밀번호를 넣으세요. 남기는 수정 의견에 이름이 붙어요.</p>
+    <p class="muted small" style="margin:0">이름을 적고 비밀번호를 넣으세요. 남기는 수정 의견에 이름이 붙어요.<br>관리자 비밀번호로 들어가면 프로젝트 대시보드가 열려요.</p>
     <label for="gName">이름 (소속)</label>
     <input id="gName" type="text" placeholder="예: 홍보팀 김주무관" required>
     <label for="gPass">비밀번호</label>
@@ -193,6 +213,7 @@ figcaption{font-size:11px;color:var(--muted)}
 </div>
 
 <div class="bar gut">
+  <button id="dashBtn" type="button" title="프로젝트 대시보드">☰ 프로젝트</button>
   <input id="title" class="title" type="text" value="새 프로젝트" aria-label="프로젝트 제목">
   <button id="openVideo" type="button">영상 열기</button>
   <button id="openCuts2" type="button">콘티 열기</button>
@@ -210,7 +231,7 @@ figcaption{font-size:11px;color:var(--muted)}
       <hr>
       <button type="button" id="changeName">작성자 바꾸기 (<span id="whoName"></span>)</button>
       <button type="button" id="installBtn" hidden>앱으로 설치하기</button>
-      <button type="button" id="newProj">새 프로젝트 시작</button>
+      <button type="button" id="newProj">프로젝트 대시보드</button>
     </div>
   </details>
   <input id="videoFile" type="file" accept="video/*" hidden>
@@ -298,6 +319,44 @@ figcaption{font-size:11px;color:var(--muted)}
   </div>
 </div>
 
+<div id="dash" hidden>
+  <div class="dhead gut">
+    <div class="dtitle"><div class="mark" aria-hidden="true"></div><h1>프로젝트 대시보드</h1></div>
+    <div class="row">
+      <button type="button" id="npOpen" class="primary">+ 새 프로젝트</button>
+      <button type="button" id="dImport">수정요청 파일로 만들기</button>
+      <button type="button" id="dBack">작업 화면으로</button>
+      <button type="button" id="dLock">잠그기</button>
+    </div>
+  </div>
+  <div class="dbody gut">
+    <div class="row dtools">
+      <input id="dSearch" type="text" placeholder="프로젝트·클라이언트 이름으로 찾기" style="max-width:360px">
+      <div class="seg" id="dClients"></div>
+      <span class="small muted" id="dStore" style="margin-left:auto"></span>
+    </div>
+    <div class="dgrid" id="dGrid"></div>
+  </div>
+  <input id="dImportFile" type="file" accept=".fbproj,.json,application/json" hidden>
+</div>
+<div class="modal" id="npModal" hidden style="place-items:center">
+  <form class="sheet" id="npForm" style="width:min(460px,100%)" autocomplete="off">
+    <b style="font-size:18px">새 프로젝트</b>
+    <div class="f"><label for="npName">프로젝트 이름</label><input id="npName" type="text" required placeholder="예: 2027 횡성군 관광홍보영상"></div>
+    <div class="f"><label for="npClient">클라이언트 · 구분 (선택)</label><input id="npClient" type="text" list="npClients" placeholder="예: 횡성군청, 원주시, 필라멘트"><datalist id="npClients"></datalist></div>
+    <div class="f"><label for="npVideo">영상 (선택, 나중에 넣어도 돼요)</label><input id="npVideo" type="file" accept="video/*"></div>
+    <span class="small" id="npErr" style="color:var(--accent)"></span>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="npCancel">취소</button><button type="submit" class="primary">만들고 열기</button></div>
+  </form>
+</div>
+<div class="modal" id="dpModal" hidden style="place-items:center">
+  <form class="sheet" id="dpForm" style="width:min(360px,100%)" autocomplete="off">
+    <b>관리자 비밀번호</b>
+    <input id="dpPass" type="password" inputmode="numeric" aria-label="관리자 비밀번호">
+    <span class="small" id="dpErr" style="color:var(--accent)"></span>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="dpCancel">취소</button><button type="submit" class="primary">대시보드 열기</button></div>
+  </form>
+</div>
 <div class="modal" id="pdfModal" hidden style="place-items:center">
   <div class="sheet" style="width:min(440px,100%)">
     <b style="font-size:17px">PDF 정리본이 준비됐어요</b>
@@ -319,6 +378,10 @@ figcaption{font-size:11px;color:var(--muted)}
 (function(){
 const $=s=>document.querySelector(s);
 const PASS="0704";
+const ADMIN_PASS="0000";
+let isAdmin=false;
+function setAdmin(on){isAdmin=on;try{on?sessionStorage.setItem("fb_admin","1"):sessionStorage.removeItem("fb_admin")}catch(e){}}
+try{isAdmin=sessionStorage.getItem("fb_admin")==="1"}catch(e){}
 const MAIL_URL="";
 const MAIL_LIST=["shey_love@naver.com","pipi0822@naver.com"];
 const MAIL_TO=MAIL_LIST[0];
@@ -328,7 +391,7 @@ const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k
 let me=ls.get("fb_name")||"";
 let proj=blank(), filter="all", videoURL=null;
 
-function blank(){return {app:"video-feedback-board",version:4,title:"새 프로젝트",videoName:"",videoDuration:0,cuts:[],conti:null,vcuts:[],notes:[]}}
+function blank(){return {app:"video-feedback-board",version:5,id:uid(),client:"",createdAt:Date.now(),updatedAt:Date.now(),thumb:"",title:"새 프로젝트",videoName:"",videoDuration:0,cuts:[],conti:null,vcuts:[],notes:[]}}
 function busy(t,cancel){if(t===false){$("#busy").hidden=true;$("#busyCancel").hidden=true;return}$("#busyText").textContent=t;$("#busy").hidden=false;$("#busyCancel").hidden=!cancel}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600)}
@@ -342,9 +405,17 @@ document.addEventListener("click",e=>{if(!$("#more").contains(e.target))closeMen
 
 /* ---------- 자동 저장 ---------- */
 let idb=null,saveT=null;
-function openIDB(){return new Promise(res=>{try{const r=indexedDB.open("fb",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{idb=r.result;res()};r.onerror=()=>res()}catch(e){res()}})}
-function idbGet(k){return new Promise(res=>{if(!idb)return res(null);try{const q=idb.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)}catch(e){res(null)}})}
-function autosave(){clearTimeout(saveT);saveT=setTimeout(()=>{if(!idb)return;try{idb.transaction("kv","readwrite").objectStore("kv").put(JSON.stringify(proj),"current")}catch(e){}},400)}
+function openIDB(){return new Promise(res=>{try{const r=indexedDB.open("fb",2);r.onupgradeneeded=()=>{const d=r.result;for(const n of ["kv","projects","videos"])if(!d.objectStoreNames.contains(n))d.createObjectStore(n)};r.onsuccess=()=>{idb=r.result;res()};r.onerror=()=>res()}catch(e){res()}})}
+function dbReq(store,mode,fn){return new Promise(res=>{if(!idb)return res(null);try{const tx=idb.transaction(store,mode);const q=fn(tx.objectStore(store));if(mode==="readonly"){q.onsuccess=()=>res(q.result===undefined?null:q.result);q.onerror=()=>res(null)}else{tx.oncomplete=()=>res(true);tx.onerror=tx.onabort=()=>res(false)}}catch(e){res(mode==="readonly"?null:false)}})}
+const dbGet=(st,k)=>dbReq(st,"readonly",o=>o.get(k));
+const dbPut=(st,k,val)=>dbReq(st,"readwrite",o=>o.put(val,k));
+const dbDel=(st,k)=>dbReq(st,"readwrite",o=>o.delete(k));
+const dbKeys=st=>dbReq(st,"readonly",o=>o.getAllKeys());
+const dbAll=st=>dbReq(st,"readonly",o=>o.getAll());
+function idbGet(k){return dbGet("kv",k)}
+function isBlank(p){return !p.notes.length&&!p.cuts.length&&!p.videoName&&(p.title||"새 프로젝트")==="새 프로젝트"}
+async function saveNow(){clearTimeout(saveT);if(!idb||!proj||!proj.id||isBlank(proj))return;proj.updatedAt=Date.now();await dbPut("projects",proj.id,JSON.stringify(proj));await dbPut("kv","last",proj.id)}
+function autosave(){clearTimeout(saveT);saveT=setTimeout(saveNow,400)}
 function changed(){autosave();render()}
 
 /* ---------- 잠금 ---------- */
@@ -352,8 +423,10 @@ $("#gName").value=me;$("#whoName").textContent=me;
 $("#gateForm").addEventListener("submit",e=>{
   e.preventDefault();const n=$("#gName").value.trim();
   if(!n){$("#gErr").textContent="이름을 적어 주세요.";return}
-  if($("#gPass").value!==PASS){$("#gErr").textContent="비밀번호가 맞지 않아요.";$("#gPass").select();return}
+  const pw=$("#gPass").value;
+  if(pw!==PASS&&pw!==ADMIN_PASS){$("#gErr").textContent="비밀번호가 맞지 않아요.";$("#gPass").select();return}
   me=n;ls.set("fb_name",n);$("#whoName").textContent=me;$("#gate").hidden=true;
+  if(pw===ADMIN_PASS){setAdmin(true);openDash()}
 });
 $("#changeName").onclick=()=>{closeMenu();$("#gPass").value="";$("#gErr").textContent="";$("#gate").hidden=false};
 
@@ -365,13 +438,28 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 
 /* ---------- 영상 ---------- */
 const v=$("#video");
-function loadVideo(file){
+function loadVideo(file,store){
   if(!file)return;
   if(videoURL)URL.revokeObjectURL(videoURL);
   videoURL=URL.createObjectURL(file);v.src=videoURL;v.hidden=false;$("#playerEmpty").hidden=true;
   $("#videoName").textContent=file.name;
   if(proj.videoName&&proj.videoName!==file.name&&proj.notes.length)toast("이 의견들은 '"+proj.videoName+"' 기준이에요. 같은 영상인지 확인해 주세요");
   if(!proj.notes.length||!proj.videoName){proj.videoName=file.name;changed()}
+  if(store!==false)storeVideo(file);
+  if(!proj.thumb)makeThumb(videoURL);
+}
+async function storeVideo(file){
+  const id=proj.id;
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
+  const ok=await dbPut("videos",id,file);
+  if(proj.id!==id)return;
+  if(ok){proj.videoStored=true;proj.videoSize=file.size;autosave();toast("영상을 이 프로젝트에 저장했어요. 다음엔 자동으로 열려요")}
+  else{proj.videoStored=false;autosave();toast("영상이 커서 기기에 저장하지 못했어요. 다음에 열 때 영상을 다시 골라 주세요")}
+}
+function makeThumb(url){
+  const t=document.createElement("video");t.muted=true;t.playsInline=true;t.preload="auto";t.src=url;const id=proj.id;
+  t.addEventListener("loadeddata",()=>{t.currentTime=Math.min(1.5,(t.duration||2)*.15)},{once:true});
+  t.addEventListener("seeked",()=>{const th=thumbFrom(t);if(th&&proj.id===id){proj.thumb=th;autosave()}t.removeAttribute("src");t.load()},{once:true});
 }
 $("#openVideo").onclick=$("#openVideo2").onclick=()=>$("#videoFile").click();
 $("#videoFile").addEventListener("change",e=>{loadVideo(e.target.files[0]);e.target.value=""});
@@ -784,7 +872,7 @@ $("#projFile").addEventListener("change",async e=>{const f=e.target.files[0];e.t
 function importText(text,name,mode){
   let data;try{data=JSON.parse(text)}catch(e){toast("수정요청 파일이 아니에요");return}
   if(!data||!Array.isArray(data.notes)){toast("수정요청 파일이 아니에요");return}
-  if(mode==="replace"){proj=Object.assign(blank(),data);toast("파일을 열었어요")}
+  if(mode==="replace"){const keep={id:proj.id,client:proj.client,createdAt:proj.createdAt,thumb:proj.thumb||data.thumb||""};proj=Object.assign(blank(),data,keep);toast("파일을 열었어요")}
   else{let add=0,upd=0;const map=new Map(proj.notes.map(n=>[n.id,n]));
     for(const n of data.notes){const m=map.get(n.id);if(!m){proj.notes.push(n);add++}else if((n.updatedAt||0)>(m.updatedAt||0)){Object.assign(m,n);upd++}}
     if(!proj.cuts.length&&Array.isArray(data.cuts)){proj.cuts=data.cuts;if(data.conti)proj.conti=data.conti}
@@ -795,10 +883,7 @@ function importText(text,name,mode){
   changed();
 }
 let newArm=0;
-$("#newProj").onclick=()=>{
-  if(proj.notes.length&&Date.now()-newArm>4000){newArm=Date.now();toast("지금 의견이 모두 지워져요. 한 번 더 누르면 새로 시작해요");return}
-  closeMenu();proj=blank();if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null}v.removeAttribute("src");v.load();v.hidden=true;$("#playerEmpty").hidden=false;$("#videoName").textContent="";$("#grab").disabled=true;changed();toast("새 프로젝트를 시작했어요");
-};
+$("#newProj").onclick=()=>{closeMenu();askDash()};
 function listText(){
   const line=(n,i)=>`${i+1}. [${tc(n.t)}]${segAt(n.t)?" [영상 컷 "+segAt(n.t).no+"]":""}${n.cut?" [콘티 "+n.cut+"번]":""} [${KMAP[kindOf(n)].name}]${n.before?" "+n.before+" →":""}${n.after?" "+n.after:""}${n.text?" "+n.text:""} — ${n.author||""}`;
   return [proj.title+" 수정 요청",""].concat(proj.notes.map(line)).join("\n");
@@ -961,8 +1046,94 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="ArrowRight"){e.preventDefault();step(e.shiftKey?1:1/FPS)}
   else if(e.key==="s"||e.key==="S"||e.key==="ㄴ"){e.preventDefault();grab()}
 });
-openIDB().then(async()=>{const t=await idbGet("current");if(t&&!proj.notes.length&&!proj.cuts.length){try{proj=Object.assign(blank(),JSON.parse(t))}catch(e){}}render();
-  if(proj.videoName&&!v.src)$("#videoName").textContent="기준 영상: "+proj.videoName});
+/* ---------- 프로젝트 대시보드 ---------- */
+function resetVideo(){if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null}v.removeAttribute("src");v.load();v.hidden=true;$("#playerEmpty").hidden=false;$("#videoName").textContent="";$("#grab").disabled=true;lastNow=-1}
+async function openProject(id){
+  await saveNow();
+  const t=await dbGet("projects",id);if(!t){toast("프로젝트를 찾지 못했어요");return}
+  try{proj=Object.assign(blank(),JSON.parse(t))}catch(e){toast("프로젝트를 읽지 못했어요");return}
+  proj.id=id;filter="all";contiView="doc";$("#contiDoc").dataset.key="";
+  resetVideo();await dbPut("kv","last",id);
+  const blob=await dbGet("videos",id);
+  if(blob){const f=blob instanceof File?blob:new File([blob],proj.videoName||"video.mp4",{type:blob.type||"video/mp4"});loadVideo(f,false)}
+  else if(proj.videoName)$("#videoName").textContent="기준 영상: "+proj.videoName+" (영상을 다시 열어 주세요)";
+  render();$("#dash").hidden=true;window.scrollTo(0,0);
+}
+async function newProject(name,client,file){
+  await saveNow();
+  proj=blank();proj.title=name;proj.client=client||"";
+  resetVideo();filter="all";$("#contiDoc").dataset.key="";
+  await saveNow();render();$("#dash").hidden=true;
+  if(file)loadVideo(file);
+}
+function askDash(){if(isAdmin){openDash();return}$("#dpPass").value="";$("#dpErr").textContent="";$("#dpModal").hidden=false;setTimeout(()=>$("#dpPass").focus(),30)}
+$("#dashBtn").onclick=askDash;
+$("#dpCancel").onclick=()=>$("#dpModal").hidden=true;
+$("#dpForm").addEventListener("submit",e=>{e.preventDefault();if($("#dpPass").value!==ADMIN_PASS){$("#dpErr").textContent="비밀번호가 맞지 않아요.";$("#dpPass").select();return}setAdmin(true);$("#dpModal").hidden=true;openDash()});
+$("#dBack").onclick=()=>{$("#dash").hidden=true};
+$("#dLock").onclick=()=>{setAdmin(false);$("#dash").hidden=true;$("#gPass").value="";$("#gErr").textContent="";$("#gate").hidden=false};
+let dClient="all",dItems=[];
+async function openDash(){await saveNow();$("#dash").hidden=false;await loadDash()}
+async function loadDash(){
+  const keys=await dbKeys("projects")||[],vals=await dbAll("projects")||[],vkeys=new Set(await dbKeys("videos")||[]);
+  dItems=[];vals.forEach((t,i)=>{try{const p=JSON.parse(t);p.id=keys[i];p._hasVideo=vkeys.has(keys[i]);dItems.push(p)}catch(e){}});
+  dItems.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  try{if(navigator.storage&&navigator.storage.estimate){const est=await navigator.storage.estimate();$("#dStore").textContent="기기 저장 공간 "+(est.usage/1073741824).toFixed(2)+"GB 사용 / 약 "+(est.quota/1073741824).toFixed(0)+"GB"}}catch(e){}
+  renderDash();
+}
+function renderDash(){
+  const q=$("#dSearch").value.trim().toLowerCase();
+  const clients=[...new Set(dItems.map(p=>p.client).filter(Boolean))];
+  if(dClient!=="all"&&!clients.includes(dClient))dClient="all";
+  const seg=$("#dClients");seg.replaceChildren();seg.hidden=!clients.length;
+  for(const c of ["all"].concat(clients)){const n=c==="all"?dItems.length:dItems.filter(p=>p.client===c).length;const b=el("button",{type:"button","aria-pressed":String(dClient===c)},(c==="all"?"전체":c)+" ",el("span",{class:"mono"},n));b.onclick=()=>{dClient=c;renderDash()};seg.append(b)}
+  $("#npClients").replaceChildren(...clients.map(c=>el("option",{value:c})));
+  const g=$("#dGrid");g.replaceChildren();
+  const list=dItems.filter(p=>(dClient==="all"||p.client===dClient)&&(!q||(p.title+" "+(p.client||"")+" "+(p.videoName||"")).toLowerCase().includes(q)));
+  if(!list.length){g.append(el("div",{class:"dempty"},dItems.length?"찾는 프로젝트가 없어요.":"아직 프로젝트가 없어요. '+ 새 프로젝트'로 이름과 영상을 넣어 시작하세요."));return}
+  for(const p of list){
+    const notes=p.notes||[];
+    const th=p.thumb||(p.vcuts&&p.vcuts[0]&&p.vcuts[0].thumb)||(notes[0]&&notes[0].still)||"";
+    const tb=el("button",{type:"button",class:"pthumb",title:"열기"},th?el("img",{src:th,alt:""}):"영상 없음");tb.onclick=()=>openProject(p.id);
+    const kinds=el("div",{class:"kinds"});for(const K of KINDS){const n=notes.filter(x=>(KMAP[x.kind]?x.kind:"screen")===K.k).length;if(n)kinds.append(el("span",{class:"kind",style:"--kc:"+K.color},K.name+" "+n))}
+    const del=el("button",{type:"button",class:"del"},"삭제");let arm=0;
+    del.onclick=async()=>{if(Date.now()-arm>3500){arm=Date.now();del.classList.add("arm");del.textContent="정말 삭제? (의견 "+notes.length+"건·영상 함께 사라짐)";setTimeout(()=>{del.classList.remove("arm");del.textContent="삭제"},3500);return}
+      await dbDel("projects",p.id);await dbDel("videos",p.id);
+      if(proj.id===p.id){proj=blank();resetVideo();await dbDel("kv","last");render()}
+      toast("'"+p.title+"' 프로젝트를 삭제했어요");loadDash()};
+    const bk=el("button",{type:"button"},"백업");bk.onclick=()=>{const c=Object.assign({},p);delete c._hasVideo;deliver(new Blob([JSON.stringify(c)],{type:"application/json"}),safeName(p.title)+"_백업_"+stamp()+".fbproj")};
+    const op=el("button",{type:"button",class:"open primary"},"열기");op.onclick=()=>openProject(p.id);
+    g.append(el("article",{class:"pcard"+(p.id===proj.id?" cur":"")},tb,el("div",{class:"pinfo"},
+      p.client?el("span",{class:"cl"},p.client):null,
+      el("h3",{},p.title||"이름 없음"),
+      el("div",{class:"stat"},(p.videoName?"영상: "+p.videoName+(p._hasVideo?"":" (기기에 영상 없음)"):"영상 없음")),
+      el("div",{class:"stat"},"의견 "+notes.length+"건"+((p.vcuts||[]).length?" · 영상 "+p.vcuts.length+"컷":"")+((p.cuts||[]).length?" · 콘티 "+p.cuts.length+"컷":"")+" · "+when(p.updatedAt)+" 수정"),
+      kinds.childNodes.length?kinds:null,
+      el("div",{class:"acts2"},op,bk,del))));
+  }
+}
+$("#dSearch").addEventListener("input",renderDash);
+$("#npOpen").onclick=()=>{$("#npName").value="";$("#npClient").value=dClient!=="all"?dClient:"";$("#npVideo").value="";$("#npErr").textContent="";$("#npModal").hidden=false;setTimeout(()=>$("#npName").focus(),30)};
+$("#npCancel").onclick=()=>$("#npModal").hidden=true;
+$("#npForm").addEventListener("submit",async e=>{e.preventDefault();const n=$("#npName").value.trim();if(!n){$("#npErr").textContent="프로젝트 이름을 적어 주세요.";return}
+  $("#npModal").hidden=true;await newProject(n,$("#npClient").value.trim(),$("#npVideo").files[0]);toast("'"+n+"' 프로젝트를 만들었어요")});
+$("#dImport").onclick=()=>$("#dImportFile").click();
+$("#dImportFile").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  let data;try{data=JSON.parse(await f.text())}catch(err){toast("수정요청 파일이 아니에요");return}
+  if(!data||!Array.isArray(data.notes)){toast("수정요청 파일이 아니에요");return}
+  const exists=dItems.find(p=>p.id&&p.id===data.id);
+  if(exists){await openProject(exists.id);importText(JSON.stringify(data),f.name,"merge");return}
+  await saveNow();proj=Object.assign(blank(),data);if(!data.id)proj.id=uid();resetVideo();await saveNow();render();$("#dash").hidden=true;toast("'"+proj.title+"' 프로젝트로 불러왔어요. 영상을 열어 주세요")});
+
+openIDB().then(async()=>{
+  // 예전 단일 저장본 옮기기
+  const keys=await dbKeys("projects")||[];
+  if(!keys.length){const t=await idbGet("current");if(t){try{const p=Object.assign(blank(),JSON.parse(t));if(p.notes.length||p.cuts.length){if(!JSON.parse(t).id)p.id=uid();await dbPut("projects",p.id,JSON.stringify(p));await dbPut("kv","last",p.id);await dbDel("kv","current")}}catch(e){}}}
+  const last=await idbGet("last");
+  if(last&&await dbGet("projects",last))await openProject(last);
+  else{render()}
+  if(isAdmin&&$("#gate").hidden)openDash();
+});
 render();
 })();
 </script>
